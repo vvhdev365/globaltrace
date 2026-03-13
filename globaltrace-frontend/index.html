@@ -3,330 +3,333 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalTrace - International Logistics Platform</title>
+    <title>GlobalTrace - Live Tracking Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        * {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-            min-height: 100vh;
-        }
-
-        .glass {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .gradient-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .animate-float {
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
-
-        .hover-lift {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .hover-lift:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .progress-bar {
-            transition: width 1s ease-out;
-        }
-
-        .ship-icon {
-            animation: sail 3s ease-in-out infinite;
-        }
-
-        @keyframes sail {
-            0%, 100% { transform: translateX(0) rotate(0deg); }
-            50% { transform: translateX(10px) rotate(2deg); }
-        }
-
-        .pulse-dot {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
+        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        body { background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); min-height: 100vh; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .gradient-text { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .hover-lift { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .hover-lift:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); }
+        .pulse-dot { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .tab-active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
     </style>
 </head>
 <body class="text-white">
-    <!-- Hero Section -->
     <div class="container mx-auto px-4 py-8">
         <!-- Navigation -->
         <nav class="glass rounded-2xl p-4 mb-12">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <svg class="w-8 h-8 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L11 4.323V3a1 1 0 011-1zm-5 8.274l-.818 2.552c-.25.78-.03 1.632.545 2.145.575.513 1.419.618 2.208.261l.818-2.552-2.753-2.406zm5.146 7.726a1 1 0 01-.894-1.447l.723-1.447A.987.987 0 0110 15z"/>
-                    </svg>
-                    <span class="text-2xl font-bold gradient-text">GlobalTrace</span>
+                    <span class="text-2xl">🌍</span>
+                    <span class="text-2xl font-bold gradient-text">GlobalTrace LIVE</span>
+                    <span class="glass px-3 py-1 rounded-full text-xs">Real-Time Data</span>
                 </div>
-                <div class="hidden md:flex space-x-8 text-sm">
-                    <a href="#track" class="hover:text-purple-400 transition">Track Shipment</a>
-                    <a href="#features" class="hover:text-purple-400 transition">Features</a>
-                    <a href="#analytics" class="hover:text-purple-400 transition">Analytics</a>
-                    <a href="https://globaltrace-production.up.railway.app/docs" target="_blank" class="hover:text-purple-400 transition">API</a>
+                <div class="flex gap-4">
+                    <span class="pulse-dot w-3 h-3 rounded-full bg-green-500"></span>
+                    <span class="text-sm text-gray-400">Live</span>
                 </div>
-                <button class="gradient-bg px-6 py-2 rounded-full text-sm font-semibold hover:opacity-90 transition">
-                    Get Started
-                </button>
             </div>
         </nav>
 
-        <!-- Hero Content -->
-        <div class="text-center max-w-5xl mx-auto mb-20">
-            <div class="animate-float inline-block mb-6">
-                <span class="glass px-6 py-2 rounded-full text-sm font-medium">
-                    🌍 Track Shipments Globally
-                </span>
-            </div>
-            <h1 class="text-6xl md:text-8xl font-black mb-6 leading-tight">
-                International
-                <span class="gradient-text block">Logistics Made Simple</span>
+        <!-- Hero -->
+        <div class="text-center max-w-5xl mx-auto mb-12">
+            <h1 class="text-5xl md:text-7xl font-black mb-4">
+                <span class="gradient-text">Real-Time</span> Global Tracking
             </h1>
-            <p class="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto">
-                Real-time tracking for sea and air cargo from India to USA. 
-                Zero-cost platform with enterprise-grade features.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <button onclick="generateShipments()" class="gradient-bg px-8 py-4 rounded-full text-lg font-semibold hover:opacity-90 transition transform hover:scale-105">
-                    🚀 Generate Test Shipments
-                </button>
-                <button onclick="scrollToShipments()" class="glass px-8 py-4 rounded-full text-lg font-semibold hover:bg-white hover:bg-opacity-10 transition">
-                    📦 View All Shipments
-                </button>
-            </div>
+            <p class="text-xl text-gray-300 mb-8">Live flights ✈️ • Real ships 🚢 • US domestic 🚚</p>
         </div>
 
         <!-- Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-20">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
             <div class="glass rounded-2xl p-6 text-center hover-lift">
-                <div class="text-4xl md:text-5xl font-black gradient-text mb-2" id="shipmentCount">0</div>
-                <div class="text-sm text-gray-400">Active Shipments</div>
+                <div class="text-4xl font-black text-blue-400" id="flightCount">...</div>
+                <div class="text-sm text-gray-400">Live Flights ✈️</div>
             </div>
             <div class="glass rounded-2xl p-6 text-center hover-lift">
-                <div class="text-4xl md:text-5xl font-black text-green-400 mb-2">2</div>
-                <div class="text-sm text-gray-400">Transport Modes</div>
+                <div class="text-4xl font-black text-cyan-400" id="shipCount">...</div>
+                <div class="text-sm text-gray-400">Live Ships 🚢</div>
             </div>
             <div class="glass rounded-2xl p-6 text-center hover-lift">
-                <div class="text-4xl md:text-5xl font-black text-blue-400 mb-2">8</div>
-                <div class="text-sm text-gray-400">Global Ports</div>
+                <div class="text-4xl font-black text-purple-400" id="domesticCount">...</div>
+                <div class="text-sm text-gray-400">US Domestic 🚚</div>
             </div>
             <div class="glass rounded-2xl p-6 text-center hover-lift">
-                <div class="text-4xl md:text-5xl font-black text-purple-400 mb-2">$0</div>
-                <div class="text-sm text-gray-400">Monthly Cost</div>
+                <div class="text-4xl font-black gradient-text" id="totalCount">...</div>
+                <div class="text-sm text-gray-400">Total Tracked</div>
             </div>
         </div>
 
-        <!-- Shipments Section -->
-        <div id="shipments" class="mb-20">
-            <div class="flex items-center justify-between mb-8">
-                <h2 class="text-4xl font-bold">Live Shipments</h2>
-                <button onclick="loadShipments()" class="glass px-6 py-3 rounded-full hover:bg-white hover:bg-opacity-10 transition">
-                    <span class="flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                        </svg>
-                        Refresh
-                    </span>
-                </button>
-            </div>
-            <div id="shipmentsList" class="grid md:grid-cols-2 gap-6">
-                <!-- Shipments will be loaded here -->
-                <div class="glass rounded-2xl p-8 text-center">
-                    <div class="text-gray-400 mb-4">
-                        <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                        </svg>
-                        No shipments yet
-                    </div>
-                    <button onclick="generateShipments()" class="gradient-bg px-6 py-3 rounded-full font-semibold hover:opacity-90 transition">
-                        Generate Test Shipments
-                    </button>
-                </div>
-            </div>
+        <!-- Tabs -->
+        <div class="glass rounded-2xl p-2 mb-8 flex gap-2">
+            <button onclick="showTab('flights')" id="tab-flights" class="flex-1 px-6 py-3 rounded-xl font-semibold transition">
+                ✈️ Live Flights
+            </button>
+            <button onclick="showTab('ships')" id="tab-ships" class="flex-1 px-6 py-3 rounded-xl font-semibold transition">
+                🚢 Live Ships
+            </button>
+            <button onclick="showTab('domestic')" id="tab-domestic" class="flex-1 px-6 py-3 rounded-xl font-semibold transition">
+                🚚 US Domestic
+            </button>
+            <button onclick="showTab('all')" id="tab-all" class="flex-1 px-6 py-3 rounded-xl font-semibold transition tab-active">
+                📊 All
+            </button>
         </div>
 
-        <!-- Features Section -->
-        <div id="features" class="mb-20">
-            <h2 class="text-4xl font-bold text-center mb-12">Why Choose GlobalTrace?</h2>
-            <div class="grid md:grid-cols-3 gap-8">
-                <div class="glass rounded-2xl p-8 hover-lift">
-                    <div class="w-14 h-14 gradient-bg rounded-2xl flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3">Global Tracking</h3>
-                    <p class="text-gray-400">Track shipments across oceans and continents in real-time with precise location updates.</p>
-                </div>
-
-                <div class="glass rounded-2xl p-8 hover-lift">
-                    <div class="w-14 h-14 gradient-bg rounded-2xl flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3">Lightning Fast</h3>
-                    <p class="text-gray-400">Powered by modern tech stack with instant updates and sub-second response times.</p>
-                </div>
-
-                <div class="glass rounded-2xl p-8 hover-lift">
-                    <div class="w-14 h-14 gradient-bg rounded-2xl flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3">Enterprise Security</h3>
-                    <p class="text-gray-400">Bank-grade encryption and security protocols to keep your shipment data safe.</p>
-                </div>
+        <!-- Content Sections -->
+        <div id="content-flights" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold">✈️ Live Flights</h2>
+                <button onclick="loadFlights()" class="glass px-4 py-2 rounded-full hover:bg-white hover:bg-opacity-10">🔄 Refresh</button>
             </div>
+            <div id="flightsList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <div id="content-ships" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold">🚢 Live Ships</h2>
+                <button onclick="loadShips()" class="glass px-4 py-2 rounded-full hover:bg-white hover:bg-opacity-10">🔄 Refresh</button>
+            </div>
+            <div id="shipsList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <div id="content-domestic" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold">🚚 US Domestic Shipments</h2>
+                <button onclick="loadDomestic()" class="glass px-4 py-2 rounded-full hover:bg-white hover:bg-opacity-10">🔄 Refresh</button>
+            </div>
+            <div id="domesticList" class="grid md:grid-cols-2 gap-4"></div>
+        </div>
+
+        <div id="content-all">
+            <h2 class="text-3xl font-bold mb-6">📊 All Live Tracking</h2>
+            <div id="allTracking" class="space-y-8"></div>
         </div>
 
         <!-- Footer -->
-        <footer class="glass rounded-2xl p-8 text-center">
-            <div class="mb-4">
-                <span class="text-2xl font-bold gradient-text">GlobalTrace</span>
-            </div>
-            <p class="text-gray-400 mb-4">International logistics platform • Zero cost • Enterprise grade</p>
-            <div class="flex justify-center gap-6">
-                <a href="https://globaltrace-production.up.railway.app/docs" target="_blank" class="text-gray-400 hover:text-purple-400 transition">API Docs</a>
-                <a href="https://github.com/vvhdev365/globaltrace" target="_blank" class="text-gray-400 hover:text-purple-400 transition">GitHub</a>
-                <a href="https://globaltrace-production.up.railway.app" target="_blank" class="text-gray-400 hover:text-purple-400 transition">Backend</a>
-            </div>
+        <footer class="glass rounded-2xl p-6 text-center mt-12">
+            <p class="text-gray-400 text-sm">
+                Data sources: OpenSky Network (flights) • AISHub (ships) • Hybrid tracking (domestic)
+            </p>
+            <p class="text-gray-500 text-xs mt-2">Updates every 30 seconds • <span id="lastUpdate"></span></p>
         </footer>
     </div>
 
     <script>
         const API_URL = 'https://globaltrace-production.up.railway.app';
+        let currentTab = 'all';
+        let autoRefresh;
 
-        async function generateShipments() {
+        function showTab(tab) {
+            currentTab = tab;
+            ['flights', 'ships', 'domestic', 'all'].forEach(t => {
+                document.getElementById(`content-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('tab-active');
+            });
+            document.getElementById(`content-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).classList.add('tab-active');
+            
+            loadData(tab);
+        }
+
+        async function loadData(tab) {
+            if (tab === 'flights') await loadFlights();
+            else if (tab === 'ships') await loadShips();
+            else if (tab === 'domestic') await loadDomestic();
+            else if (tab === 'all') await loadAllTracking();
+        }
+
+        async function loadFlights() {
             try {
-                const response = await fetch(`${API_URL}/api/international/test/generate-shipments`, {
-                    method: 'POST'
-                });
+                const response = await fetch(`${API_URL}/api/live/flights?limit=20`);
                 const data = await response.json();
                 
-                // Show success message
-                alert(`✅ Generated ${data.count} test shipments!`);
+                document.getElementById('flightCount').textContent = data.count || 0;
                 
-                // Load shipments
-                loadShipments();
+                const html = data.flights?.map(f => `
+                    <div class="glass rounded-xl p-4 hover-lift">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="text-lg font-bold text-blue-400">${f.callsign || 'N/A'}</div>
+                            <div class="text-2xl">✈️</div>
+                        </div>
+                        <div class="text-sm space-y-1">
+                            <div class="text-gray-400">Country: ${f.origin_country || 'Unknown'}</div>
+                            <div class="text-gray-400">Altitude: ${f.altitude_meters ? Math.round(f.altitude_meters) + 'm' : 'N/A'}</div>
+                            <div class="text-gray-400">Speed: ${f.velocity_mps ? Math.round(f.velocity_mps * 1.94384) + ' knots' : 'N/A'}</div>
+                            <div class="text-gray-400">Position: ${f.latitude?.toFixed(2)}, ${f.longitude?.toFixed(2)}</div>
+                            ${f.on_ground ? '<div class="text-yellow-400">🛬 On Ground</div>' : '<div class="text-green-400">🛫 In Flight</div>'}
+                        </div>
+                    </div>
+                `).join('') || '<div class="glass rounded-xl p-8 text-center text-gray-400">No flights available</div>';
+                
+                document.getElementById('flightsList').innerHTML = html;
             } catch (error) {
-                console.error('Error:', error);
-                alert('❌ Error generating shipments. Check console for details.');
+                console.error('Error loading flights:', error);
+                document.getElementById('flightsList').innerHTML = '<div class="glass rounded-xl p-8 text-center text-red-400">Error loading flight data</div>';
             }
         }
 
-        async function loadShipments() {
+        async function loadShips() {
             try {
-                const response = await fetch(`${API_URL}/api/international/shipments`);
+                const response = await fetch(`${API_URL}/api/live/ships?limit=20`);
                 const data = await response.json();
                 
-                const shipmentsList = document.getElementById('shipmentsList');
-                const shipmentCount = document.getElementById('shipmentCount');
+                document.getElementById('shipCount').textContent = data.count || 0;
                 
-                if (data.shipments && data.shipments.length > 0) {
-                    shipmentCount.textContent = data.count;
-                    
-                    shipmentsList.innerHTML = data.shipments.map(shipment => `
-                        <div class="glass rounded-2xl p-6 hover-lift cursor-pointer" onclick="viewShipment('${shipment.tracking_number}')">
-                            <div class="flex items-start justify-between mb-4">
-                                <div>
-                                    <div class="text-sm text-gray-400 mb-1">Tracking Number</div>
-                                    <div class="font-mono font-bold text-purple-400">${shipment.tracking_number}</div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    ${shipment.mode === 'sea' ? 
-                                        '<span class="ship-icon text-2xl">🚢</span>' : 
-                                        '<span class="text-2xl">✈️</span>'
-                                    }
-                                    <span class="pulse-dot w-3 h-3 rounded-full ${getStatusColor(shipment.status)}"></span>
-                                </div>
+                const html = data.ships?.map(s => `
+                    <div class="glass rounded-xl p-4 hover-lift">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="text-lg font-bold text-cyan-400">${s.name || 'Unknown Vessel'}</div>
+                            <div class="text-2xl">🚢</div>
+                        </div>
+                        <div class="text-sm space-y-1">
+                            ${s.imo ? `<div class="text-gray-400">IMO: ${s.imo}</div>` : ''}
+                            ${s.destination ? `<div class="text-gray-400">→ ${s.destination}</div>` : ''}
+                            <div class="text-gray-400">Speed: ${s.speed_knots ? s.speed_knots + ' knots' : 'N/A'}</div>
+                            ${s.ship_type ? `<div class="text-gray-400">Type: ${s.ship_type}</div>` : ''}
+                            <div class="text-gray-400">Position: ${s.latitude?.toFixed(2)}, ${s.longitude?.toFixed(2)}</div>
+                        </div>
+                    </div>
+                `).join('') || '<div class="glass rounded-xl p-8 text-center text-gray-400">No ships available</div>';
+                
+                document.getElementById('shipsList').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading ships:', error);
+                document.getElementById('shipsList').innerHTML = '<div class="glass rounded-xl p-8 text-center text-red-400">Error loading ship data</div>';
+            }
+        }
+
+        async function loadDomestic() {
+            try {
+                const response = await fetch(`${API_URL}/api/domestic/shipments`);
+                const data = await response.json();
+                
+                document.getElementById('domesticCount').textContent = data.count || 0;
+                
+                const html = data.shipments?.map(s => `
+                    <div class="glass rounded-xl p-6 hover-lift">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <div class="font-mono font-bold text-purple-400 mb-1">${s.tracking_number}</div>
+                                <div class="text-sm text-gray-400">${s.carrier} • ${s.type.replace('_', ' ')}</div>
                             </div>
-                            
-                            <div class="mb-4">
-                                <div class="flex items-center justify-between text-sm mb-2">
-                                    <span class="text-gray-400">${shipment.origin.split('(')[0]}</span>
-                                    <span class="text-gray-400">→</span>
-                                    <span class="text-gray-400">${shipment.destination.split('(')[0]}</span>
-                                </div>
-                                <div class="w-full bg-gray-700 rounded-full h-2">
-                                    <div class="progress-bar gradient-bg h-2 rounded-full" style="width: ${shipment.progress}%"></div>
-                                </div>
-                                <div class="text-xs text-gray-400 mt-1">${shipment.progress}% Complete</div>
+                            <div class="text-3xl">🚚</div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="text-sm text-gray-400 mb-2">${s.origin} → ${s.destination}</div>
+                            <div class="w-full bg-gray-700 rounded-full h-2">
+                                <div class="gradient-bg h-2 rounded-full" style="width: ${s.progress}%"></div>
                             </div>
-                            
-                            <div class="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                    <div class="text-gray-400">Status</div>
-                                    <div class="font-semibold capitalize">${shipment.status.replace('_', ' ')}</div>
-                                </div>
-                                <div>
-                                    <div class="text-gray-400">Cargo</div>
-                                    <div class="font-semibold">${shipment.cargo.split('-')[0].trim()}</div>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-4 pt-4 border-t border-gray-700">
-                                <div class="text-xs text-gray-400">Current Location</div>
-                                <div class="font-semibold">${shipment.current_location}</div>
+                            <div class="text-xs text-gray-400 mt-1">${s.progress}% Complete</div>
+                        </div>
+                        <div class="text-sm space-y-1">
+                            <div class="font-semibold text-white">${s.current_location}</div>
+                            <div class="text-gray-400">Status: ${s.status.replace('_', ' ')}</div>
+                            <div class="text-gray-400">Weight: ${s.weight_lbs} lbs</div>
+                        </div>
+                    </div>
+                `).join('') || '<div class="glass rounded-xl p-8 text-center text-gray-400">No domestic shipments</div>';
+                
+                document.getElementById('domesticList').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading domestic:', error);
+            }
+        }
+
+        async function loadAllTracking() {
+            try {
+                const response = await fetch(`${API_URL}/api/tracking/all`);
+                const data = await response.json();
+                
+                document.getElementById('flightCount').textContent = data.summary?.live_flights || 0;
+                document.getElementById('shipCount').textContent = data.summary?.live_ships || 0;
+                document.getElementById('domesticCount').textContent = data.summary?.domestic_shipments || 0;
+                document.getElementById('totalCount').textContent = data.summary?.total_items || 0;
+                
+                let html = '';
+                
+                // Flights section
+                if (data.flights?.length > 0) {
+                    html += `
+                        <div>
+                            <h3 class="text-2xl font-bold mb-4">✈️ Live Flights (${data.flights.length})</h3>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                ${data.flights.slice(0, 6).map(f => `
+                                    <div class="glass rounded-xl p-4 hover-lift">
+                                        <div class="font-bold text-blue-400 mb-2">${f.callsign || 'N/A'}</div>
+                                        <div class="text-sm text-gray-400">
+                                            ${f.origin_country} • ${f.altitude_meters ? Math.round(f.altitude_meters) + 'm' : 'N/A'}
+                                        </div>
+                                    </div>
+                                `).join('')}
                             </div>
                         </div>
-                    `).join('');
+                    `;
                 }
+                
+                // Ships section
+                if (data.ships?.length > 0) {
+                    html += `
+                        <div>
+                            <h3 class="text-2xl font-bold mb-4">🚢 Live Ships (${data.ships.length})</h3>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                ${data.ships.slice(0, 6).map(s => `
+                                    <div class="glass rounded-xl p-4 hover-lift">
+                                        <div class="font-bold text-cyan-400 mb-2">${s.name || 'Unknown'}</div>
+                                        <div class="text-sm text-gray-400">
+                                            ${s.destination || 'No destination'} • ${s.speed_knots || 0} knots
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Domestic section
+                if (data.domestic?.length > 0) {
+                    html += `
+                        <div>
+                            <h3 class="text-2xl font-bold mb-4">🚚 US Domestic (${data.domestic.length})</h3>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                ${data.domestic.map(s => `
+                                    <div class="glass rounded-xl p-4 hover-lift">
+                                        <div class="font-mono font-bold text-purple-400 mb-2">${s.tracking_number}</div>
+                                        <div class="text-sm text-gray-400 mb-2">${s.carrier} • ${s.origin} → ${s.destination}</div>
+                                        <div class="w-full bg-gray-700 rounded-full h-1.5">
+                                            <div class="gradient-bg h-1.5 rounded-full" style="width: ${s.progress}%"></div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('allTracking').innerHTML = html || '<div class="glass rounded-xl p-8 text-center text-gray-400">Loading data...</div>';
+                document.getElementById('lastUpdate').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+                
             } catch (error) {
-                console.error('Error loading shipments:', error);
+                console.error('Error loading all tracking:', error);
             }
         }
 
-        function getStatusColor(status) {
-            const colors = {
-                'in_transit': 'bg-blue-500',
-                'in_flight': 'bg-purple-500',
-                'at_port': 'bg-yellow-500',
-                'customs_clearance': 'bg-orange-500',
-                'delivered': 'bg-green-500'
-            };
-            return colors[status] || 'bg-gray-500';
+        // Auto-refresh every 30 seconds
+        function startAutoRefresh() {
+            if (autoRefresh) clearInterval(autoRefresh);
+            autoRefresh = setInterval(() => {
+                loadData(currentTab);
+            }, 30000);
         }
 
-        function viewShipment(trackingNumber) {
-            window.open(`${API_URL}/api/international/shipments/${trackingNumber}`, '_blank');
-        }
-
-        function scrollToShipments() {
-            document.getElementById('shipments').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // Load shipments on page load
+        // Initial load
         window.addEventListener('load', () => {
-            loadShipments();
+            loadAllTracking();
+            startAutoRefresh();
         });
     </script>
 </body>
