@@ -68,10 +68,10 @@ def detect_tracking_type(input_str: str) -> Dict:
     """Detect what type of tracking number this is"""
     
     clean = input_str.strip().upper().replace(" ", "").replace("-", "")
-    original = input_str.strip()
+    original = input_str.strip().upper()
     
-    # Customs Entry: XXX-XXXXXXX-X (must have dashes in original)
-    if re.match(r'^\d{3}-\d{7}-\d$', original):
+    # Customs Entry: XXX-XXXXXXX-X (filer code can be letters or digits)
+    if re.match(r'^[A-Z0-9]{3}-\d{7}-\d$', original):
         return {
             "type": "customs_entry",
             "entry_number": original,
@@ -152,11 +152,11 @@ def detect_tracking_type(input_str: str) -> Dict:
         "type": "unknown",
         "error": f"Cannot recognize format: '{original}'",
         "help": [
+            "Customs Entry: 8KP-0074459-0 (XXX-XXXXXXX-X)",
             "Air Waybill: 176-12345678",
             "Container: MAEU1234567",
             "UPS: 1Z999AA10123456784",
-            "FedEx: 123456789012",
-            "Customs: 123-4567890-1"
+            "FedEx: 123456789012"
         ]
     }
 
@@ -365,7 +365,7 @@ async def root():
         "status": "working",
         "cost": "$0/month",
         "test_examples": {
-            "customs": "123-4567890-1",
+            "customs": "8KP-0074459-0",
             "maersk": "MAEU1234567",
             "emirates": "176-12345678",
             "ups": "1Z999AA10123456784",
