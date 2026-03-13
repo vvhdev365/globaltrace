@@ -36,8 +36,10 @@ def detect_carrier(tracking_number: str) -> Dict:
         return {
             "carrier": "UPS",
             "tracking_number": clean,
-            "url": f"https://www.ups.com/track?tracknum={clean}",
-            "type": "express"
+            "url": "https://www.ups.com/track",
+            "direct_url": f"https://www.ups.com/track?tracknum={clean}",
+            "type": "express",
+            "can_embed": True
         }
     
     # FedEx: 12 or 15 digits
@@ -45,8 +47,10 @@ def detect_carrier(tracking_number: str) -> Dict:
         return {
             "carrier": "FedEx",
             "tracking_number": clean,
-            "url": f"https://www.fedex.com/fedextrack/?tracknumbers={clean}",
-            "type": "express"
+            "url": "https://www.fedex.com/fedextrack/",
+            "direct_url": f"https://www.fedex.com/fedextrack/?tracknumbers={clean}",
+            "type": "express",
+            "can_embed": True
         }
     
     # DHL: 10 digits
@@ -54,8 +58,10 @@ def detect_carrier(tracking_number: str) -> Dict:
         return {
             "carrier": "DHL Express",
             "tracking_number": clean,
-            "url": f"https://www.dhl.com/en/express/tracking.html?AWB={clean}",
-            "type": "express"
+            "url": "https://www.dhl.com/us-en/home/tracking.html",
+            "direct_url": f"https://www.dhl.com/us-en/home/tracking/tracking-express.html?submit=1&tracking-id={clean}",
+            "type": "express",
+            "can_embed": False
         }
     
     # USPS: 9400... or 9200... (20-22 digits)
@@ -63,8 +69,10 @@ def detect_carrier(tracking_number: str) -> Dict:
         return {
             "carrier": "USPS",
             "tracking_number": clean,
-            "url": f"https://tools.usps.com/go/TrackConfirmAction?tLabels={clean}",
-            "type": "mail"
+            "url": "https://tools.usps.com/go/TrackConfirmAction",
+            "direct_url": f"https://tools.usps.com/go/TrackConfirmAction?tLabels={clean}",
+            "type": "mail",
+            "can_embed": True
         }
     
     # Container: 4 letters + 7 digits
@@ -72,23 +80,25 @@ def detect_carrier(tracking_number: str) -> Dict:
         prefix = clean[:4]
         
         carriers = {
-            "MAEU": {"name": "Maersk", "url": f"https://www.maersk.com/tracking/{clean}"},
-            "MSCU": {"name": "MSC", "url": "https://www.msc.com/track-a-shipment"},
-            "CMAU": {"name": "CMA CGM", "url": "https://www.cma-cgm.com/ebusiness/tracking"},
-            "COSU": {"name": "COSCO", "url": "https://elines.coscoshipping.com/ebusiness/cargoTracking"},
-            "HLCU": {"name": "Hapag-Lloyd", "url": "https://www.hapag-lloyd.com/en/online-business/track/track-by-container.html"},
-            "ONEY": {"name": "ONE", "url": "https://ecomm.one-line.com/ecom/CUP_HOM_3301.do"},
-            "EISU": {"name": "Evergreen", "url": "https://www.shipmentlink.com/servlet/TDB1_CargoTracking.do"},
+            "MAEU": {"name": "Maersk", "url": "https://www.maersk.com/tracking", "can_embed": False},
+            "MSCU": {"name": "MSC", "url": "https://www.msc.com/en/track-a-shipment", "can_embed": False},
+            "CMAU": {"name": "CMA CGM", "url": "https://www.cma-cgm.com/ebusiness/tracking", "can_embed": False},
+            "COSU": {"name": "COSCO", "url": "https://elines.coscoshipping.com/ebusiness/cargoTracking", "can_embed": False},
+            "HLCU": {"name": "Hapag-Lloyd", "url": "https://www.hapag-lloyd.com/en/online-business/track/track-by-container.html", "can_embed": False},
+            "ONEY": {"name": "ONE", "url": "https://ecomm.one-line.com/ecom/CUP_HOM_3301.do", "can_embed": False},
+            "EISU": {"name": "Evergreen", "url": "https://www.shipmentlink.com/servlet/TDB1_CargoTracking.do", "can_embed": False},
         }
         
-        carrier_info = carriers.get(prefix, {"name": "Ocean Carrier", "url": f"https://www.google.com/search?q={prefix}+container+tracking+{clean}"})
+        carrier_info = carriers.get(prefix, {"name": "Ocean Carrier", "url": "https://www.google.com/search?q=container+tracking", "can_embed": True})
         
         return {
             "carrier": carrier_info["name"],
             "tracking_number": clean,
             "url": carrier_info["url"],
+            "direct_url": carrier_info["url"],
             "type": "ocean",
-            "note": f"Search for container: {clean}"
+            "can_embed": carrier_info["can_embed"],
+            "note": f"Enter container number: {clean}"
         }
     
     # Air Waybill: XXX-XXXXXXXX (3 digits/letters, dash, 8 digits)
@@ -98,26 +108,28 @@ def detect_carrier(tracking_number: str) -> Dict:
         full_awb = f"{prefix}-{awb_match.group(2)}"
         
         airlines = {
-            "098": {"name": "Air India Cargo", "url": "https://www.airindia.com/in/en/manage/track-cargo.html"},
-            "176": {"name": "Emirates SkyCargo", "url": "https://www.skycargo.com/track"},
-            "235": {"name": "Turkish Cargo", "url": "https://cargo.turkishairlines.com/en-INT/track-shipment"},
-            "020": {"name": "Lufthansa Cargo", "url": "https://www.lufthansa-cargo.com/tracking"},
-            "157": {"name": "Qatar Airways Cargo", "url": "https://www.qrcargo.com/track"},
-            "607": {"name": "Etihad Cargo", "url": "https://www.etihadcargo.com/en/track"},
-            "057": {"name": "Air France KLM Cargo", "url": "https://www.afklcargo.com/WW/en/common/tracking/track.jsp"},
-            "125": {"name": "British Airways World Cargo", "url": "https://www.iacargo.com/iCargo/tracking.do"},
-            "618": {"name": "Singapore Airlines Cargo", "url": "https://www.siacargo.com/track-trace"},
-            "160": {"name": "Cathay Pacific Cargo", "url": "https://www.cathaypacificcargo.com/track"},
+            "098": {"name": "Air India Cargo", "url": "https://www.airindia.com/in/en/manage/track-cargo.html", "can_embed": False},
+            "176": {"name": "Emirates SkyCargo", "url": "https://www.skycargo.com/track", "can_embed": False},
+            "235": {"name": "Turkish Cargo", "url": "https://cargo.turkishairlines.com/en-INT/track-shipment", "can_embed": False},
+            "020": {"name": "Lufthansa Cargo", "url": "https://www.lufthansa-cargo.com/tracking", "can_embed": False},
+            "157": {"name": "Qatar Airways Cargo", "url": "https://www.qrcargo.com/track", "can_embed": False},
+            "607": {"name": "Etihad Cargo", "url": "https://www.etihadcargo.com/en/track", "can_embed": False},
+            "057": {"name": "Air France KLM Cargo", "url": "https://www.afklcargo.com/WW/en/common/tracking/track.jsp", "can_embed": False},
+            "125": {"name": "British Airways World Cargo", "url": "https://www.iacargo.com/iCargo/tracking.do", "can_embed": False},
+            "618": {"name": "Singapore Airlines Cargo", "url": "https://www.siacargo.com/track-trace", "can_embed": False},
+            "160": {"name": "Cathay Pacific Cargo", "url": "https://www.cathaypacificcargo.com/track", "can_embed": False},
         }
         
-        airline_info = airlines.get(prefix, {"name": "Air Cargo", "url": f"https://www.google.com/search?q=AWB+{full_awb}+tracking"})
+        airline_info = airlines.get(prefix, {"name": "Air Cargo", "url": "https://www.google.com/search?q=air+cargo+tracking", "can_embed": True})
         
         return {
             "carrier": airline_info["name"],
             "tracking_number": full_awb,
             "url": airline_info["url"],
+            "direct_url": airline_info["url"],
             "type": "air",
-            "note": f"Search for AWB: {full_awb}"
+            "can_embed": airline_info["can_embed"],
+            "note": f"Enter AWB: {full_awb}"
         }
     
     # Unknown format
@@ -157,10 +169,12 @@ async def track_shipment(data: dict):
         "success": True,
         "carrier": result["carrier"],
         "tracking_number": result["tracking_number"],
-        "url": result["url"],
+        "url": result.get("direct_url", result["url"]),
+        "search_url": result["url"],
         "type": result["type"],
+        "can_embed": result.get("can_embed", False),
         "note": result.get("note", ""),
-        "message": f"Opening {result['carrier']} official tracking website"
+        "message": f"Opening {result['carrier']} tracking page"
     }
 
 @app.get("/")

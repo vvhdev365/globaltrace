@@ -99,28 +99,78 @@
         <!-- Result -->
         <div id="resultArea" class="hidden">
             <div class="glass rounded-2xl p-8 mb-8">
-                <div class="text-center mb-6">
-                    <div class="text-6xl mb-4" id="carrierIcon">📦</div>
-                    <h2 class="text-3xl font-bold mb-2" id="carrierName"></h2>
-                    <p class="text-gray-400 font-mono" id="trackingNumber"></p>
+                <div class="flex justify-between items-start mb-6">
+                    <div class="flex-1">
+                        <div class="text-4xl mb-2" id="carrierIcon">📦</div>
+                        <h2 class="text-2xl font-bold mb-2" id="carrierName"></h2>
+                        
+                        <!-- Copyable tracking number -->
+                        <div class="mb-4">
+                            <label class="text-xs text-gray-400 block mb-1">Tracking Number (Click to Copy)</label>
+                            <div class="flex gap-2">
+                                <input 
+                                    type="text" 
+                                    id="trackingNumberCopy" 
+                                    readonly
+                                    class="flex-1 px-4 py-2 rounded-lg bg-white bg-opacity-10 border border-gray-600 font-mono text-lg cursor-pointer"
+                                    onclick="copyTracking()"
+                                />
+                                <button onclick="copyTracking()" class="px-4 py-2 glass rounded-lg hover:bg-white hover:bg-opacity-10">
+                                    📋 Copy
+                                </button>
+                            </div>
+                            <div id="copyFeedback" class="text-xs text-green-400 mt-1 hidden">✓ Copied!</div>
+                        </div>
+
+                        <p class="text-sm text-gray-400" id="carrierInstructions"></p>
+                    </div>
+                    <button onclick="closeResult()" class="text-gray-400 hover:text-white text-3xl ml-4">✕</button>
                 </div>
 
-                <div class="p-6 bg-green-500 bg-opacity-20 border border-green-500 rounded-xl mb-6">
-                    <div class="font-bold text-lg mb-2">✅ Opening Official Carrier Website</div>
-                    <div class="text-sm text-gray-300" id="carrierMessage"></div>
+                <!-- iframe Container -->
+                <div id="iframeContainer" class="mb-4">
+                    <div class="mb-2 p-3 bg-blue-500 bg-opacity-10 rounded-lg">
+                        <div class="text-sm">
+                            <span class="font-semibold">📍 Embedded Tracking Page</span>
+                            <span class="text-gray-400 ml-2">(Loading...)</span>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <iframe 
+                            id="trackingIframe" 
+                            class="w-full rounded-xl border-2 border-gray-700"
+                            style="height: 600px; background: white;"
+                        ></iframe>
+                        <div id="iframeLoader" class="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 rounded-xl">
+                            <div class="text-center">
+                                <div class="text-4xl mb-2">⏳</div>
+                                <div>Loading carrier website...</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <button 
-                    onclick="openCarrierSite()" 
-                    id="openButton"
-                    class="w-full gradient-bg px-8 py-4 rounded-xl font-semibold hover:opacity-90 transition text-xl mb-4"
-                >
-                    Open <span id="carrierNameBtn"></span> Website →
-                </button>
+                <!-- Fallback Container (if iframe blocked) -->
+                <div id="fallbackContainer" class="hidden">
+                    <div class="p-6 bg-yellow-500 bg-opacity-20 border border-yellow-500 rounded-xl mb-4">
+                        <div class="font-bold mb-2">🔒 Carrier Blocks Embedding</div>
+                        <div class="text-sm text-gray-300">
+                            This carrier's website cannot be embedded for security reasons.
+                            Click below to open in a new window.
+                        </div>
+                    </div>
+
+                    <button 
+                        onclick="openCarrierSite()" 
+                        class="w-full gradient-bg px-8 py-4 rounded-xl font-semibold hover:opacity-90 transition text-xl mb-2"
+                    >
+                        Open <span id="carrierNameBtn"></span> Website in New Window →
+                    </button>
+                </div>
 
                 <button 
                     onclick="closeResult()" 
-                    class="w-full glass px-6 py-3 rounded-xl hover:bg-white hover:bg-opacity-10 transition"
+                    class="w-full glass px-6 py-3 rounded-xl hover:bg-white hover:bg-opacity-10 transition mt-4"
                 >
                     ← Track Another Shipment
                 </button>
@@ -163,6 +213,7 @@
     <script>
         const API_URL = 'https://globaltrace-production.up.railway.app';
         let currentUrl = '';
+        let currentSearchUrl = '';
 
         const carrierIcons = {
             'UPS': '📦',
@@ -230,14 +281,90 @@
             document.getElementById('carrierIcon').textContent = icon;
             document.getElementById('carrierName').textContent = data.carrier;
             document.getElementById('carrierNameBtn').textContent = data.carrier;
-            document.getElementById('trackingNumber').textContent = data.tracking_number;
-            document.getElementById('carrierMessage').textContent = data.message;
+            document.getElementById('trackingNumberCopy').value = data.tracking_number;
+            document.getElementById('carrierInstructions').textContent = data.note || `Paste tracking number: ${data.tracking_number}`;
             
             currentUrl = data.url;
+            currentSearchUrl = data.search_url;
+
+            // Try iframe embedding
+            tryIframeLoad(data.url, data.can_embed);
 
             setTimeout(() => {
                 document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth' });
             }, 100);
+        }
+
+        function tryIframeLoad(url, canEmbed) {
+            const iframeContainer = document.getElementById('iframeContainer');
+            const fallbackContainer = document.getElementById('fallbackContainer');
+            const iframe = document.getElementById('trackingIframe');
+            const loader = document.getElementById('iframeLoader');
+
+            if (!canEmbed) {
+                // Don't even try if we know it won't work
+                showFallback();
+                return;
+            }
+
+            // Show iframe, try to load
+            iframeContainer.classList.remove('hidden');
+            fallbackContainer.classList.add('hidden');
+            loader.classList.remove('hidden');
+
+            iframe.src = url;
+
+            // Detect if iframe loads successfully
+            let iframeLoaded = false;
+            
+            iframe.onload = function() {
+                iframeLoaded = true;
+                loader.classList.add('hidden');
+                
+                // Try to detect if iframe content loaded
+                setTimeout(() => {
+                    try {
+                        // This will throw error if blocked by CORS
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        if (!iframeDoc || !iframeDoc.body || iframeDoc.body.innerHTML.length === 0) {
+                            showFallback();
+                        }
+                    } catch (e) {
+                        // Blocked by CORS - show fallback
+                        showFallback();
+                    }
+                }, 1000);
+            };
+
+            iframe.onerror = function() {
+                showFallback();
+            };
+
+            // Timeout fallback
+            setTimeout(() => {
+                if (!iframeLoaded) {
+                    showFallback();
+                }
+            }, 5000);
+        }
+
+        function showFallback() {
+            document.getElementById('iframeContainer').classList.add('hidden');
+            document.getElementById('fallbackContainer').classList.remove('hidden');
+        }
+
+        function copyTracking() {
+            const input = document.getElementById('trackingNumberCopy');
+            input.select();
+            input.setSelectionRange(0, 99999); // Mobile
+            
+            navigator.clipboard.writeText(input.value).then(() => {
+                const feedback = document.getElementById('copyFeedback');
+                feedback.classList.remove('hidden');
+                setTimeout(() => {
+                    feedback.classList.add('hidden');
+                }, 2000);
+            });
         }
 
         function openCarrierSite() {
