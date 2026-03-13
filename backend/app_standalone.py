@@ -161,7 +161,7 @@ async def track_shipment(data: dict):
                     "Maersk Container: MAEU1234567",
                     "Air Waybill: 176-12345678",
                 ],
-                "note": "For U.S. Customs entries, contact your customs broker directly"
+                "note": "For U.S. Customs entries (XXX-XXXXXXX-X format), contact your customs broker directly"
             }
         )
     
