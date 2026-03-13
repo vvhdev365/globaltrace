@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalTrace - Live Tracking Platform</title>
+    <title>GlobalTrace - Manual Tracking</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -13,323 +13,378 @@
         .gradient-text { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         .hover-lift { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .hover-lift:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); }
-        .pulse-dot { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .tab-active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3); }
+        .timeline-line { border-left: 2px solid rgba(102, 126, 234, 0.3); }
+        .timeline-dot { width: 16px; height: 16px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .timeline-dot-pending { background: rgba(255, 255, 255, 0.2); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; overflow-y: auto; }
+        .modal.active { display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; }
     </style>
 </head>
 <body class="text-white">
     <div class="container mx-auto px-4 py-8">
         <!-- Navigation -->
-        <nav class="glass rounded-2xl p-4 mb-12">
+        <nav class="glass rounded-2xl p-4 mb-8">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <span class="text-2xl">🌍</span>
-                    <span class="text-2xl font-bold gradient-text">GlobalTrace LIVE</span>
-                    <span class="glass px-3 py-1 rounded-full text-xs">Real-Time Data</span>
+                    <span class="text-2xl">📦</span>
+                    <span class="text-2xl font-bold gradient-text">GlobalTrace</span>
                 </div>
-                <div class="flex gap-4">
-                    <span class="pulse-dot w-3 h-3 rounded-full bg-green-500"></span>
-                    <span class="text-sm text-gray-400">Live</span>
-                </div>
+                <span class="text-sm text-gray-400">Manual Tracking</span>
             </div>
         </nav>
 
-        <!-- Hero -->
-        <div class="text-center max-w-5xl mx-auto mb-12">
-            <h1 class="text-5xl md:text-7xl font-black mb-4">
-                <span class="gradient-text">Real-Time</span> Global Tracking
+        <!-- Hero & Input -->
+        <div class="max-w-3xl mx-auto mb-12">
+            <h1 class="text-5xl md:text-6xl font-black mb-4 text-center">
+                Track <span class="gradient-text">Any Shipment</span>
             </h1>
-            <p class="text-xl text-gray-300 mb-8">Live flights ✈️ • Real ships 🚢 • US domestic 🚚</p>
+            <p class="text-xl text-gray-300 mb-8 text-center">Enter tracking number - we'll auto-detect the carrier</p>
+            
+            <!-- Input Form -->
+            <div class="glass rounded-2xl p-8">
+                <div class="flex gap-4">
+                    <input 
+                        type="text" 
+                        id="trackingInput" 
+                        placeholder="Enter UPS, FedEx, USPS, Air, or Ocean tracking number..."
+                        class="flex-1 px-6 py-4 rounded-xl bg-white bg-opacity-10 border border-gray-600 focus:border-purple-500 outline-none text-white placeholder-gray-400"
+                        onkeypress="if(event.key==='Enter') trackShipment()"
+                    />
+                    <button 
+                        onclick="trackShipment()" 
+                        class="gradient-bg px-8 py-4 rounded-xl font-semibold hover:opacity-90 transition whitespace-nowrap"
+                    >
+                        Track 📍
+                    </button>
+                </div>
+                
+                <!-- Examples -->
+                <div class="mt-4 text-sm text-gray-400">
+                    <div class="mb-2">Try these examples:</div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="document.getElementById('trackingInput').value='1Z999AA10123456784'; trackShipment()" 
+                                class="px-3 py-1 rounded-lg bg-white bg-opacity-5 hover:bg-opacity-10 transition">
+                            UPS Example
+                        </button>
+                        <button onclick="document.getElementById('trackingInput').value='782561234567'; trackShipment()" 
+                                class="px-3 py-1 rounded-lg bg-white bg-opacity-5 hover:bg-opacity-10 transition">
+                            FedEx Example
+                        </button>
+                        <button onclick="document.getElementById('trackingInput').value='9400111699000367891234'; trackShipment()" 
+                                class="px-3 py-1 rounded-lg bg-white bg-opacity-5 hover:bg-opacity-10 transition">
+                            USPS Example
+                        </button>
+                        <button onclick="document.getElementById('trackingInput').value='176-12345678'; trackShipment()" 
+                                class="px-3 py-1 rounded-lg bg-white bg-opacity-5 hover:bg-opacity-10 transition">
+                            Air Cargo
+                        </button>
+                        <button onclick="document.getElementById('trackingInput').value='MSCU1234567'; trackShipment()" 
+                                class="px-3 py-1 rounded-lg bg-white bg-opacity-5 hover:bg-opacity-10 transition">
+                            Ocean Container
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-            <div class="glass rounded-2xl p-6 text-center hover-lift">
-                <div class="text-4xl font-black text-blue-400" id="flightCount">...</div>
-                <div class="text-sm text-gray-400">Live Flights ✈️</div>
+        <!-- Tracked Shipments List -->
+        <div id="trackedShipments" class="max-w-6xl mx-auto">
+            <!-- Shipments will appear here -->
+        </div>
+    </div>
+
+    <!-- Modal for Detailed Hops View -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content glass rounded-3xl p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-3xl font-bold gradient-text">Shipment Journey</h2>
+                <button onclick="closeModal()" class="text-4xl hover:text-purple-400 transition">&times;</button>
             </div>
-            <div class="glass rounded-2xl p-6 text-center hover-lift">
-                <div class="text-4xl font-black text-cyan-400" id="shipCount">...</div>
-                <div class="text-sm text-gray-400">Live Ships 🚢</div>
-            </div>
-            <div class="glass rounded-2xl p-6 text-center hover-lift">
-                <div class="text-4xl font-black text-purple-400" id="domesticCount">...</div>
-                <div class="text-sm text-gray-400">US Domestic 🚚</div>
-            </div>
-            <div class="glass rounded-2xl p-6 text-center hover-lift">
-                <div class="text-4xl font-black gradient-text" id="totalCount">...</div>
-                <div class="text-sm text-gray-400">Total Tracked</div>
+            <div id="modalContent">
+                <!-- Details will be inserted here -->
             </div>
         </div>
-
-        <!-- Tabs -->
-        <div class="glass rounded-2xl p-2 mb-8 flex gap-2">
-            <button onclick="showTab('flights')" id="tab-flights" class="flex-1 px-6 py-3 rounded-xl font-semibold transition">
-                ✈️ Live Flights
-            </button>
-            <button onclick="showTab('ships')" id="tab-ships" class="flex-1 px-6 py-3 rounded-xl font-semibold transition">
-                🚢 Live Ships
-            </button>
-            <button onclick="showTab('domestic')" id="tab-domestic" class="flex-1 px-6 py-3 rounded-xl font-semibold transition">
-                🚚 US Domestic
-            </button>
-            <button onclick="showTab('all')" id="tab-all" class="flex-1 px-6 py-3 rounded-xl font-semibold transition tab-active">
-                📊 All
-            </button>
-        </div>
-
-        <!-- Content Sections -->
-        <div id="content-flights" class="hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-3xl font-bold">✈️ Live Flights</h2>
-                <button onclick="loadFlights()" class="glass px-4 py-2 rounded-full hover:bg-white hover:bg-opacity-10">🔄 Refresh</button>
-            </div>
-            <div id="flightsList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-        </div>
-
-        <div id="content-ships" class="hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-3xl font-bold">🚢 Live Ships</h2>
-                <button onclick="loadShips()" class="glass px-4 py-2 rounded-full hover:bg-white hover:bg-opacity-10">🔄 Refresh</button>
-            </div>
-            <div id="shipsList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-        </div>
-
-        <div id="content-domestic" class="hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-3xl font-bold">🚚 US Domestic Shipments</h2>
-                <button onclick="loadDomestic()" class="glass px-4 py-2 rounded-full hover:bg-white hover:bg-opacity-10">🔄 Refresh</button>
-            </div>
-            <div id="domesticList" class="grid md:grid-cols-2 gap-4"></div>
-        </div>
-
-        <div id="content-all">
-            <h2 class="text-3xl font-bold mb-6">📊 All Live Tracking</h2>
-            <div id="allTracking" class="space-y-8"></div>
-        </div>
-
-        <!-- Footer -->
-        <footer class="glass rounded-2xl p-6 text-center mt-12">
-            <p class="text-gray-400 text-sm">
-                Data sources: OpenSky Network (flights) • AISHub (ships) • Hybrid tracking (domestic)
-            </p>
-            <p class="text-gray-500 text-xs mt-2">Updates every 30 seconds • <span id="lastUpdate"></span></p>
-        </footer>
     </div>
 
     <script>
         const API_URL = 'https://globaltrace-production.up.railway.app';
-        let currentTab = 'all';
-        let autoRefresh;
+        let trackedShipments = [];
 
-        function showTab(tab) {
-            currentTab = tab;
-            ['flights', 'ships', 'domestic', 'all'].forEach(t => {
-                document.getElementById(`content-${t}`).classList.add('hidden');
-                document.getElementById(`tab-${t}`).classList.remove('tab-active');
-            });
-            document.getElementById(`content-${tab}`).classList.remove('hidden');
-            document.getElementById(`tab-${tab}`).classList.add('tab-active');
+        function getCarrierIcon(carrier) {
+            const icons = {
+                'UPS': '🚚',
+                'FedEx': '📦',
+                'USPS': '✉️',
+                'DHL': '📮',
+                'Amazon Logistics': '📦',
+                'Air Cargo': '✈️',
+                'Ocean Freight': '🚢',
+                'Unknown': '📍'
+            };
+            return icons[carrier] || '📦';
+        }
+
+        function getModeIcon(mode) {
+            const icons = {
+                'ground': '🚚',
+                'express': '⚡',
+                'mail': '✉️',
+                'air': '✈️',
+                'sea': '🚢',
+                'delivery': '📦'
+            };
+            return icons[mode] || '📦';
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'picked_up': 'bg-blue-500',
+                'in_transit': 'bg-cyan-500',
+                'out_for_delivery': 'bg-yellow-500',
+                'delivered': 'bg-green-500',
+                'departed': 'bg-purple-500',
+                'arrived': 'bg-blue-500',
+                'customs': 'bg-orange-500',
+                'at_sea': 'bg-cyan-600'
+            };
+            return colors[status] || 'bg-gray-500';
+        }
+
+        async function trackShipment() {
+            const trackingNumber = document.getElementById('trackingInput').value.trim();
             
-            loadData(tab);
-        }
+            if (!trackingNumber) {
+                alert('Please enter a tracking number');
+                return;
+            }
 
-        async function loadData(tab) {
-            if (tab === 'flights') await loadFlights();
-            else if (tab === 'ships') await loadShips();
-            else if (tab === 'domestic') await loadDomestic();
-            else if (tab === 'all') await loadAllTracking();
-        }
-
-        async function loadFlights() {
             try {
-                const response = await fetch(`${API_URL}/api/live/flights?limit=20`);
+                const response = await fetch(`${API_URL}/api/track/manual`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tracking_number: trackingNumber })
+                });
+
                 const data = await response.json();
                 
-                document.getElementById('flightCount').textContent = data.count || 0;
+                // Add to tracked list
+                const existing = trackedShipments.findIndex(s => s.tracking_number === data.tracking_number);
+                if (existing >= 0) {
+                    trackedShipments[existing] = data;
+                } else {
+                    trackedShipments.unshift(data);
+                }
                 
-                const html = data.flights?.map(f => `
-                    <div class="glass rounded-xl p-4 hover-lift">
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="text-lg font-bold text-blue-400">${f.callsign || 'N/A'}</div>
-                            <div class="text-2xl">✈️</div>
-                        </div>
-                        <div class="text-sm space-y-1">
-                            <div class="text-gray-400">Country: ${f.origin_country || 'Unknown'}</div>
-                            <div class="text-gray-400">Altitude: ${f.altitude_meters ? Math.round(f.altitude_meters) + 'm' : 'N/A'}</div>
-                            <div class="text-gray-400">Speed: ${f.velocity_mps ? Math.round(f.velocity_mps * 1.94384) + ' knots' : 'N/A'}</div>
-                            <div class="text-gray-400">Position: ${f.latitude?.toFixed(2)}, ${f.longitude?.toFixed(2)}</div>
-                            ${f.on_ground ? '<div class="text-yellow-400">🛬 On Ground</div>' : '<div class="text-green-400">🛫 In Flight</div>'}
-                        </div>
-                    </div>
-                `).join('') || '<div class="glass rounded-xl p-8 text-center text-gray-400">No flights available</div>';
+                // Clear input
+                document.getElementById('trackingInput').value = '';
                 
-                document.getElementById('flightsList').innerHTML = html;
+                // Render
+                renderTrackedShipments();
+                
+                // Show details immediately
+                showDetails(data.tracking_number);
+                
             } catch (error) {
-                console.error('Error loading flights:', error);
-                document.getElementById('flightsList').innerHTML = '<div class="glass rounded-xl p-8 text-center text-red-400">Error loading flight data</div>';
+                console.error('Error:', error);
+                alert('Error tracking shipment. Please try again.');
             }
         }
 
-        async function loadShips() {
-            try {
-                const response = await fetch(`${API_URL}/api/live/ships?limit=20`);
-                const data = await response.json();
-                
-                document.getElementById('shipCount').textContent = data.count || 0;
-                
-                const html = data.ships?.map(s => `
-                    <div class="glass rounded-xl p-4 hover-lift">
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="text-lg font-bold text-cyan-400">${s.name || 'Unknown Vessel'}</div>
-                            <div class="text-2xl">🚢</div>
-                        </div>
-                        <div class="text-sm space-y-1">
-                            ${s.imo ? `<div class="text-gray-400">IMO: ${s.imo}</div>` : ''}
-                            ${s.destination ? `<div class="text-gray-400">→ ${s.destination}</div>` : ''}
-                            <div class="text-gray-400">Speed: ${s.speed_knots ? s.speed_knots + ' knots' : 'N/A'}</div>
-                            ${s.ship_type ? `<div class="text-gray-400">Type: ${s.ship_type}</div>` : ''}
-                            <div class="text-gray-400">Position: ${s.latitude?.toFixed(2)}, ${s.longitude?.toFixed(2)}</div>
-                        </div>
-                    </div>
-                `).join('') || '<div class="glass rounded-xl p-8 text-center text-gray-400">No ships available</div>';
-                
-                document.getElementById('shipsList').innerHTML = html;
-            } catch (error) {
-                console.error('Error loading ships:', error);
-                document.getElementById('shipsList').innerHTML = '<div class="glass rounded-xl p-8 text-center text-red-400">Error loading ship data</div>';
+        function renderTrackedShipments() {
+            const container = document.getElementById('trackedShipments');
+            
+            if (trackedShipments.length === 0) {
+                container.innerHTML = '';
+                return;
             }
+
+            const html = `
+                <h2 class="text-3xl font-bold mb-6">Your Tracked Shipments</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    ${trackedShipments.map(s => `
+                        <div class="glass rounded-2xl p-6 hover-lift cursor-pointer" onclick="showDetails('${s.tracking_number}')">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-3xl">${getCarrierIcon(s.carrier)}</span>
+                                        <div>
+                                            <div class="font-bold text-lg">${s.carrier}</div>
+                                            <div class="text-sm text-gray-400">${s.pattern}</div>
+                                        </div>
+                                    </div>
+                                    <div class="font-mono text-purple-400 text-sm">${s.tracking_number}</div>
+                                </div>
+                                <button onclick="event.stopPropagation(); removeTracking('${s.tracking_number}')" 
+                                        class="text-gray-400 hover:text-red-400 transition">
+                                    ✕
+                                </button>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="flex items-center justify-between text-sm mb-2">
+                                    <span class="text-gray-400">Progress</span>
+                                    <span class="text-white font-semibold">${s.completed_hops} of ${s.total_hops} stops</span>
+                                </div>
+                                <div class="w-full bg-gray-700 rounded-full h-2.5">
+                                    <div class="gradient-bg h-2.5 rounded-full" style="width: ${s.progress}%"></div>
+                                </div>
+                                <div class="text-xs text-gray-400 mt-1">${s.progress}% Complete</div>
+                            </div>
+
+                            <div class="space-y-2 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl">${getModeIcon(s.mode)}</span>
+                                    <div>
+                                        <div class="text-gray-400">Type</div>
+                                        <div class="font-semibold capitalize">${s.type} • ${s.mode}</div>
+                                    </div>
+                                </div>
+                                <div class="pt-2 border-t border-gray-700">
+                                    <div class="text-gray-400 mb-1">Current Status</div>
+                                    <div class="font-semibold">${s.current_status.replace('_', ' ').toUpperCase()}</div>
+                                    <div class="text-gray-400 mt-1">${s.current_location}</div>
+                                    ${s.current_facility ? `<div class="text-gray-500 text-xs mt-1">${s.current_facility}</div>` : ''}
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-4 border-t border-gray-700 text-center">
+                                <span class="text-purple-400 font-semibold">Click to view ${s.total_hops} detailed hops →</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            container.innerHTML = html;
         }
 
-        async function loadDomestic() {
-            try {
-                const response = await fetch(`${API_URL}/api/domestic/shipments`);
-                const data = await response.json();
-                
-                document.getElementById('domesticCount').textContent = data.count || 0;
-                
-                const html = data.shipments?.map(s => `
-                    <div class="glass rounded-xl p-6 hover-lift">
-                        <div class="flex justify-between items-start mb-4">
+        function showDetails(trackingNumber) {
+            const shipment = trackedShipments.find(s => s.tracking_number === trackingNumber);
+            if (!shipment) return;
+
+            const now = new Date();
+            
+            const modalContent = `
+                <div class="space-y-6">
+                    <!-- Header -->
+                    <div class="glass rounded-xl p-6">
+                        <div class="flex items-center gap-4 mb-4">
+                            <span class="text-5xl">${getCarrierIcon(shipment.carrier)}</span>
                             <div>
-                                <div class="font-mono font-bold text-purple-400 mb-1">${s.tracking_number}</div>
-                                <div class="text-sm text-gray-400">${s.carrier} • ${s.type.replace('_', ' ')}</div>
+                                <div class="text-2xl font-bold">${shipment.carrier}</div>
+                                <div class="text-gray-400">${shipment.pattern}</div>
+                                <div class="font-mono text-purple-400 mt-1">${shipment.tracking_number}</div>
                             </div>
-                            <div class="text-3xl">🚚</div>
                         </div>
-                        <div class="mb-4">
-                            <div class="text-sm text-gray-400 mb-2">${s.origin} → ${s.destination}</div>
-                            <div class="w-full bg-gray-700 rounded-full h-2">
-                                <div class="gradient-bg h-2 rounded-full" style="width: ${s.progress}%"></div>
+                        
+                        <div class="grid grid-cols-3 gap-4 mt-4">
+                            <div class="text-center">
+                                <div class="text-3xl font-black gradient-text">${shipment.completed_hops}</div>
+                                <div class="text-sm text-gray-400">Completed</div>
                             </div>
-                            <div class="text-xs text-gray-400 mt-1">${s.progress}% Complete</div>
-                        </div>
-                        <div class="text-sm space-y-1">
-                            <div class="font-semibold text-white">${s.current_location}</div>
-                            <div class="text-gray-400">Status: ${s.status.replace('_', ' ')}</div>
-                            <div class="text-gray-400">Weight: ${s.weight_lbs} lbs</div>
+                            <div class="text-center">
+                                <div class="text-3xl font-black text-blue-400">${shipment.total_hops - shipment.completed_hops}</div>
+                                <div class="text-sm text-gray-400">Remaining</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-black text-purple-400">${shipment.progress}%</div>
+                                <div class="text-sm text-gray-400">Progress</div>
+                            </div>
                         </div>
                     </div>
-                `).join('') || '<div class="glass rounded-xl p-8 text-center text-gray-400">No domestic shipments</div>';
-                
-                document.getElementById('domesticList').innerHTML = html;
-            } catch (error) {
-                console.error('Error loading domestic:', error);
-            }
+
+                    <!-- Timeline -->
+                    <div class="glass rounded-xl p-6">
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <span>🗺️</span> Complete Journey Timeline
+                        </h3>
+                        
+                        <div class="space-y-6">
+                            ${shipment.hops.map((hop, index) => {
+                                const hopTime = new Date(hop.timestamp);
+                                const isPast = hopTime < now;
+                                const isCurrent = index === shipment.completed_hops - 1;
+                                
+                                return `
+                                    <div class="flex gap-4">
+                                        <!-- Timeline Line & Dot -->
+                                        <div class="flex flex-col items-center">
+                                            <div class="timeline-dot ${isPast ? '' : 'timeline-dot-pending'} ${isCurrent ? 'ring-4 ring-purple-400 ring-opacity-30' : ''}"></div>
+                                            ${index < shipment.hops.length - 1 ? '<div class="timeline-line flex-1 mt-2 mb-2" style="min-height: 60px;"></div>' : ''}
+                                        </div>
+
+                                        <!-- Content -->
+                                        <div class="flex-1 ${isPast ? '' : 'opacity-50'}">
+                                            <div class="glass rounded-xl p-4 ${isCurrent ? 'ring-2 ring-purple-500' : ''}">
+                                                <div class="flex items-start justify-between mb-2">
+                                                    <div class="flex-1">
+                                                        <div class="flex items-center gap-2 mb-1">
+                                                            <span class="px-2 py-1 rounded text-xs font-semibold ${getStatusColor(hop.status)} bg-opacity-20 text-white">
+                                                                ${hop.status.replace('_', ' ').toUpperCase()}
+                                                            </span>
+                                                            ${isCurrent ? '<span class="px-2 py-1 rounded text-xs font-semibold bg-purple-500 bg-opacity-20 text-purple-400">CURRENT</span>' : ''}
+                                                            ${hop.scan_type ? `<span class="text-xs text-gray-400">${hop.scan_type}</span>` : ''}
+                                                        </div>
+                                                        <div class="font-bold text-lg">${hop.description}</div>
+                                                        <div class="text-sm text-gray-400 mt-1">${hop.location}</div>
+                                                        ${hop.facility ? `<div class="text-xs text-gray-500 mt-1">📍 ${hop.facility}</div>` : ''}
+                                                    </div>
+                                                    <div class="text-right ml-4">
+                                                        <div class="text-sm font-semibold whitespace-nowrap">
+                                                            ${new Date(hop.timestamp).toLocaleDateString()}
+                                                        </div>
+                                                        <div class="text-xs text-gray-400 whitespace-nowrap">
+                                                            ${new Date(hop.timestamp).toLocaleTimeString()}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                ${hop.employee ? `<div class="text-xs text-gray-400 mt-2">👤 ${hop.employee}</div>` : ''}
+                                                ${hop.flight_number ? `<div class="text-xs text-gray-400 mt-2">✈️ Flight ${hop.flight_number}</div>` : ''}
+                                                ${hop.vessel_name ? `<div class="text-xs text-gray-400 mt-2">🚢 ${hop.vessel_name} (IMO: ${hop.vessel_imo})</div>` : ''}
+                                                ${hop.latitude && hop.longitude ? `<div class="text-xs text-gray-500 mt-2">📍 ${hop.latitude.toFixed(4)}, ${hop.longitude.toFixed(4)}</div>` : ''}
+                                                ${hop.estimated_delivery ? `<div class="text-xs text-green-400 mt-2">🎯 Est. Delivery: ${new Date(hop.estimated_delivery).toLocaleString()}</div>` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modalContent').innerHTML = modalContent;
+            document.getElementById('detailModal').classList.add('active');
         }
 
-        async function loadAllTracking() {
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        async function removeTracking(trackingNumber) {
+            if (!confirm('Remove this shipment from tracking?')) return;
+            
+            trackedShipments = trackedShipments.filter(s => s.tracking_number !== trackingNumber);
+            renderTrackedShipments();
+            
             try {
-                const response = await fetch(`${API_URL}/api/tracking/all`);
-                const data = await response.json();
-                
-                document.getElementById('flightCount').textContent = data.summary?.live_flights || 0;
-                document.getElementById('shipCount').textContent = data.summary?.live_ships || 0;
-                document.getElementById('domesticCount').textContent = data.summary?.domestic_shipments || 0;
-                document.getElementById('totalCount').textContent = data.summary?.total_items || 0;
-                
-                let html = '';
-                
-                // Flights section
-                if (data.flights?.length > 0) {
-                    html += `
-                        <div>
-                            <h3 class="text-2xl font-bold mb-4">✈️ Live Flights (${data.flights.length})</h3>
-                            <div class="grid md:grid-cols-3 gap-4">
-                                ${data.flights.slice(0, 6).map(f => `
-                                    <div class="glass rounded-xl p-4 hover-lift">
-                                        <div class="font-bold text-blue-400 mb-2">${f.callsign || 'N/A'}</div>
-                                        <div class="text-sm text-gray-400">
-                                            ${f.origin_country} • ${f.altitude_meters ? Math.round(f.altitude_meters) + 'm' : 'N/A'}
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                // Ships section
-                if (data.ships?.length > 0) {
-                    html += `
-                        <div>
-                            <h3 class="text-2xl font-bold mb-4">🚢 Live Ships (${data.ships.length})</h3>
-                            <div class="grid md:grid-cols-3 gap-4">
-                                ${data.ships.slice(0, 6).map(s => `
-                                    <div class="glass rounded-xl p-4 hover-lift">
-                                        <div class="font-bold text-cyan-400 mb-2">${s.name || 'Unknown'}</div>
-                                        <div class="text-sm text-gray-400">
-                                            ${s.destination || 'No destination'} • ${s.speed_knots || 0} knots
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                // Domestic section
-                if (data.domestic?.length > 0) {
-                    html += `
-                        <div>
-                            <h3 class="text-2xl font-bold mb-4">🚚 US Domestic (${data.domestic.length})</h3>
-                            <div class="grid md:grid-cols-2 gap-4">
-                                ${data.domestic.map(s => `
-                                    <div class="glass rounded-xl p-4 hover-lift">
-                                        <div class="font-mono font-bold text-purple-400 mb-2">${s.tracking_number}</div>
-                                        <div class="text-sm text-gray-400 mb-2">${s.carrier} • ${s.origin} → ${s.destination}</div>
-                                        <div class="w-full bg-gray-700 rounded-full h-1.5">
-                                            <div class="gradient-bg h-1.5 rounded-full" style="width: ${s.progress}%"></div>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                document.getElementById('allTracking').innerHTML = html || '<div class="glass rounded-xl p-8 text-center text-gray-400">Loading data...</div>';
-                document.getElementById('lastUpdate').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
-                
+                await fetch(`${API_URL}/api/track/${trackingNumber}`, { method: 'DELETE' });
             } catch (error) {
-                console.error('Error loading all tracking:', error);
+                console.error('Error removing tracking:', error);
             }
         }
 
-        // Auto-refresh every 30 seconds
-        function startAutoRefresh() {
-            if (autoRefresh) clearInterval(autoRefresh);
-            autoRefresh = setInterval(() => {
-                loadData(currentTab);
-            }, 30000);
-        }
+        // Close modal on outside click
+        document.getElementById('detailModal').addEventListener('click', (e) => {
+            if (e.target.id === 'detailModal') closeModal();
+        });
 
         // Initial load
         window.addEventListener('load', () => {
-            loadAllTracking();
-            startAutoRefresh();
+            renderTrackedShipments();
         });
     </script>
 </body>
