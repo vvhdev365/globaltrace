@@ -3,108 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalTrace - Manual Tracking</title>
+    <title>GlobalTrace Ultimate - Real APIs + Smart Routing + Customs</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        * { font-family: 'Inter', sans-serif; }
         body { background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); min-height: 100vh; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .gradient-text { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .hover-lift { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .hover-lift { transition: all 0.3s ease; }
         .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3); }
+        .real-data-badge { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .sim-data-badge { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .customs-badge { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .pulse-green { animation: pulse-green 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse-green { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .timeline-line { border-left: 2px solid rgba(102, 126, 234, 0.3); }
         .timeline-dot { width: 16px; height: 16px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         .timeline-dot-pending { background: rgba(255, 255, 255, 0.2); }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; overflow-y: auto; }
         .modal.active { display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; }
     </style>
 </head>
 <body class="text-white">
     <div class="container mx-auto px-4 py-8">
-        <!-- Navigation -->
         <nav class="glass rounded-2xl p-4 mb-8">
             <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <span class="text-2xl">📦</span>
-                    <span class="text-2xl font-bold gradient-text">GlobalTrace</span>
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🌍</span>
+                    <span class="text-2xl font-bold gradient-text">GlobalTrace Ultimate</span>
+                    <span class="text-xs glass px-2 py-1 rounded-full">Real APIs + Smart Routing</span>
                 </div>
-                <span class="text-sm text-gray-400">Manual Tracking</span>
+                <div class="flex items-center gap-2">
+                    <div class="glass px-3 py-1 rounded-full text-xs flex items-center gap-2" id="apiStatus">
+                        <span class="pulse-green w-2 h-2 rounded-full bg-gray-500"></span>
+                        <span>Checking APIs...</span>
+                    </div>
+                </div>
             </div>
         </nav>
 
-        <!-- Hero & Input -->
-        <div class="max-w-3xl mx-auto mb-12">
-            <h1 class="text-5xl md:text-6xl font-black mb-4 text-center">
-                Track <span class="gradient-text">Any Shipment</span>
+        <div class="max-w-4xl mx-auto mb-12">
+            <h1 class="text-5xl font-black mb-4 text-center">
+                Track with <span class="gradient-text">Intelligence</span>
             </h1>
-            <p class="text-xl text-gray-300 mb-8 text-center">Enter tracking number - we'll auto-detect the carrier</p>
+            <p class="text-xl text-gray-300 mb-8 text-center">Real APIs • Smart Routes • US Customs</p>
             
-            <!-- Input Form -->
             <div class="glass rounded-2xl p-8">
-                <div class="flex gap-4">
-                    <input 
-                        type="text" 
-                        id="trackingInput" 
-                        placeholder="Enter UPS, FedEx, USPS, Air, or Ocean tracking number..."
-                        class="flex-1 px-6 py-4 rounded-xl bg-white bg-opacity-10 border border-gray-600 focus:border-purple-500 outline-none text-white placeholder-gray-400"
-                        onkeypress="if(event.key==='Enter') trackShipment()"
-                    />
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Tracking Number *</label>
+                        <input 
+                            type="text" 
+                            id="trackingInput" 
+                            placeholder="Maersk container, UPS package, or any tracking number..."
+                            class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-10 border border-gray-600 focus:border-purple-500 outline-none"
+                        />
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold mb-2">Origin (Optional)</label>
+                            <input 
+                                type="text" 
+                                id="originInput" 
+                                placeholder="e.g., Mumbai, India"
+                                class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-10 border border-gray-600 focus:border-purple-500 outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-2">Destination (Optional)</label>
+                            <input 
+                                type="text" 
+                                id="destInput" 
+                                placeholder="e.g., New York, USA"
+                                class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-10 border border-gray-600 focus:border-purple-500 outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">
+                            US Customs Entry Number (Optional)
+                            <span class="text-xs text-gray-400 font-normal ml-2">Format: XXX-XXXXXXX-X</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="customsInput" 
+                            placeholder="e.g., 123-4567890-1"
+                            class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-10 border border-gray-600 focus:border-purple-500 outline-none"
+                            maxlength="13"
+                        />
+                        <p class="text-xs text-gray-400 mt-1">
+                            Add for detailed ISF filing & CBP clearance tracking
+                        </p>
+                    </div>
+
                     <button 
                         onclick="trackShipment()" 
-                        class="gradient-bg px-8 py-4 rounded-xl font-semibold hover:opacity-90 transition whitespace-nowrap"
+                        class="w-full gradient-bg px-8 py-4 rounded-xl font-semibold hover:opacity-90 transition"
                     >
-                        Track 📍
+                        Track Shipment 📍
                     </button>
                 </div>
                 
-                <!-- Examples -->
-                <div class="mt-4 text-sm text-gray-400">
-                    <div class="mb-2">Try these examples:</div>
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick="document.getElementById('trackingInput').value='1Z999AA10123456784'; trackShipment()" 
-                                class="px-3 py-1 rounded-lg bg-white bg-opacity-5 hover:bg-opacity-10 transition">
-                            UPS Example
+                <div class="mt-6 pt-6 border-t border-gray-700">
+                    <div class="text-sm text-gray-400 mb-3">Quick examples:</div>
+                    <div class="grid md:grid-cols-2 gap-2">
+                        <button onclick="fillExample('maersk')" class="glass px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 text-left text-sm">
+                            <span class="real-data-badge text-white px-2 py-0.5 rounded text-xs mr-2">REAL</span>
+                            🚢 Maersk + Customs
                         </button>
-                        <button onclick="document.getElementById('trackingInput').value='782561234567'; trackShipment()" 
-                                class="px-3 py-1 rounded-lg bg-white bg-opacity-5 hover:bg-opacity-10 transition">
-                            FedEx Example
+                        <button onclick="fillExample('ups')" class="glass px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 text-left text-sm">
+                            <span class="real-data-badge text-white px-2 py-0.5 rounded text-xs mr-2">REAL</span>
+                            🚚 UPS Domestic
                         </button>
-                        <button onclick="document.getElementById('trackingInput').value='9400111699000367891234'; trackShipment()" 
-                                class="px-3 py-1 rounded-lg bg-white bg-opacity-5 hover:bg-opacity-10 transition">
-                            USPS Example
+                        <button onclick="fillExample('air')" class="glass px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 text-left text-sm">
+                            <span class="sim-data-badge text-white px-2 py-0.5 rounded text-xs mr-2">SIM</span>
+                            ✈️ Air + Customs
                         </button>
-                        <button onclick="document.getElementById('trackingInput').value='176-12345678'; trackShipment()" 
-                                class="px-3 py-1 rounded-lg bg-white bg-opacity-5 hover:bg-opacity-10 transition">
-                            Air Cargo
-                        </button>
-                        <button onclick="document.getElementById('trackingInput').value='MSCU1234567'; trackShipment()" 
-                                class="px-3 py-1 rounded-lg bg-white bg-opacity-5 hover:bg-opacity-10 transition">
-                            Ocean Container
+                        <button onclick="fillExample('ocean')" class="glass px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 text-left text-sm">
+                            <span class="sim-data-badge text-white px-2 py-0.5 rounded text-xs mr-2">SIM</span>
+                            🚢 Ocean + Customs
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tracked Shipments List -->
-        <div id="trackedShipments" class="max-w-6xl mx-auto">
-            <!-- Shipments will appear here -->
-        </div>
+        <div id="trackedShipments" class="max-w-6xl mx-auto"></div>
     </div>
 
-    <!-- Modal for Detailed Hops View -->
     <div id="detailModal" class="modal">
-        <div class="modal-content glass rounded-3xl p-8">
+        <div class="modal-content glass rounded-3xl p-8" style="max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto;">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-3xl font-bold gradient-text">Shipment Journey</h2>
-                <button onclick="closeModal()" class="text-4xl hover:text-purple-400 transition">&times;</button>
+                <button onclick="closeModal()" class="text-4xl hover:text-purple-400">&times;</button>
             </div>
-            <div id="modalContent">
-                <!-- Details will be inserted here -->
-            </div>
+            <div id="modalContent"></div>
         </div>
     </div>
 
@@ -112,48 +149,64 @@
         const API_URL = 'https://globaltrace-production.up.railway.app';
         let trackedShipments = [];
 
-        function getCarrierIcon(carrier) {
-            const icons = {
-                'UPS': '🚚',
-                'FedEx': '📦',
-                'USPS': '✉️',
-                'DHL': '📮',
-                'Amazon Logistics': '📦',
-                'Air Cargo': '✈️',
-                'Ocean Freight': '🚢',
-                'Unknown': '📍'
-            };
-            return icons[carrier] || '📦';
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                
+                const maerskStatus = data.apis?.maersk === 'configured';
+                const upsStatus = data.apis?.ups === 'configured';
+                
+                const statusEl = document.getElementById('apiStatus');
+                if (maerskStatus || upsStatus) {
+                    const apis = [];
+                    if (maerskStatus) apis.push('Maersk');
+                    if (upsStatus) apis.push('UPS');
+                    
+                    statusEl.innerHTML = `
+                        <span class="pulse-green w-2 h-2 rounded-full bg-green-500"></span>
+                        <span>${apis.join(' & ')} API Connected</span>
+                    `;
+                } else {
+                    statusEl.innerHTML = `
+                        <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+                        <span>Smart Simulation Mode</span>
+                    `;
+                }
+            } catch (e) {
+                console.error('API check failed:', e);
+            }
         }
 
-        function getModeIcon(mode) {
-            const icons = {
-                'ground': '🚚',
-                'express': '⚡',
-                'mail': '✉️',
-                'air': '✈️',
-                'sea': '🚢',
-                'delivery': '📦'
-            };
-            return icons[mode] || '📦';
-        }
-
-        function getStatusColor(status) {
-            const colors = {
-                'picked_up': 'bg-blue-500',
-                'in_transit': 'bg-cyan-500',
-                'out_for_delivery': 'bg-yellow-500',
-                'delivered': 'bg-green-500',
-                'departed': 'bg-purple-500',
-                'arrived': 'bg-blue-500',
-                'customs': 'bg-orange-500',
-                'at_sea': 'bg-cyan-600'
-            };
-            return colors[status] || 'bg-gray-500';
+        function fillExample(type) {
+            if (type === 'maersk') {
+                document.getElementById('trackingInput').value = 'MAEU1234567';
+                document.getElementById('originInput').value = 'Shanghai, China';
+                document.getElementById('destInput').value = 'Los Angeles, USA';
+                document.getElementById('customsInput').value = '123-4567890-1';
+            } else if (type === 'ups') {
+                document.getElementById('trackingInput').value = '1Z999AA10123456784';
+                document.getElementById('originInput').value = 'Los Angeles, CA';
+                document.getElementById('destInput').value = 'New York, NY';
+                document.getElementById('customsInput').value = '';
+            } else if (type === 'air') {
+                document.getElementById('trackingInput').value = '176-12345678';
+                document.getElementById('originInput').value = 'Delhi, India';
+                document.getElementById('destInput').value = 'New York, USA';
+                document.getElementById('customsInput').value = '456-7890123-4';
+            } else if (type === 'ocean') {
+                document.getElementById('trackingInput').value = 'MSCU1234567';
+                document.getElementById('originInput').value = 'Mumbai, India';
+                document.getElementById('destInput').value = 'Los Angeles, USA';
+                document.getElementById('customsInput').value = '789-0123456-7';
+            }
         }
 
         async function trackShipment() {
             const trackingNumber = document.getElementById('trackingInput').value.trim();
+            const origin = document.getElementById('originInput').value.trim();
+            const destination = document.getElementById('destInput').value.trim();
+            const customsEntry = document.getElementById('customsInput').value.trim();
             
             if (!trackingNumber) {
                 alert('Please enter a tracking number');
@@ -164,12 +217,22 @@
                 const response = await fetch(`${API_URL}/api/track/manual`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ tracking_number: trackingNumber })
+                    body: JSON.stringify({ 
+                        tracking_number: trackingNumber,
+                        origin: origin || undefined,
+                        destination: destination || undefined,
+                        customs_entry: customsEntry || undefined
+                    })
                 });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert(error.detail || 'Error tracking shipment');
+                    return;
+                }
 
                 const data = await response.json();
                 
-                // Add to tracked list
                 const existing = trackedShipments.findIndex(s => s.tracking_number === data.tracking_number);
                 if (existing >= 0) {
                     trackedShipments[existing] = data;
@@ -177,13 +240,12 @@
                     trackedShipments.unshift(data);
                 }
                 
-                // Clear input
                 document.getElementById('trackingInput').value = '';
+                document.getElementById('originInput').value = '';
+                document.getElementById('destInput').value = '';
+                document.getElementById('customsInput').value = '';
                 
-                // Render
                 renderTrackedShipments();
-                
-                // Show details immediately
                 showDetails(data.tracking_number);
                 
             } catch (error) {
@@ -192,72 +254,93 @@
             }
         }
 
+        function getIcon(carrier) {
+            const icons = {
+                'UPS': '🚚', 'FedEx': '📦', 'USPS': '✉️',
+                'Maersk': '🚢', 'Maersk Line': '🚢',
+                'Air Cargo': '✈️', 'Ocean Freight': '🚢'
+            };
+            return icons[carrier] || '📦';
+        }
+
+        function getDataBadge(dataSource) {
+            if (dataSource && dataSource.includes('REAL')) {
+                return '<span class="real-data-badge text-white px-2 py-1 rounded text-xs font-semibold">🟢 REAL DATA</span>';
+            }
+            return '<span class="sim-data-badge text-white px-2 py-1 rounded text-xs font-semibold">⚪ SMART SIM</span>';
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'picked_up': 'bg-blue-500', 'in_transit': 'bg-cyan-500',
+                'out_for_delivery': 'bg-yellow-500', 'delivered': 'bg-green-500',
+                'customs': 'bg-orange-500', 'released': 'bg-green-500',
+                'isf_filed': 'bg-purple-500', 'isf_accepted': 'bg-purple-400'
+            };
+            return colors[status] || 'bg-gray-500';
+        }
+
         function renderTrackedShipments() {
             const container = document.getElementById('trackedShipments');
             
-            if (trackedShipments.length === 0) {
+            if (!trackedShipments.length) {
                 container.innerHTML = '';
                 return;
             }
 
-            const html = `
+            container.innerHTML = `
                 <h2 class="text-3xl font-bold mb-6">Your Tracked Shipments</h2>
                 <div class="grid md:grid-cols-2 gap-6">
                     ${trackedShipments.map(s => `
                         <div class="glass rounded-2xl p-6 hover-lift cursor-pointer" onclick="showDetails('${s.tracking_number}')">
-                            <div class="flex items-start justify-between mb-4">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <span class="text-3xl">${getCarrierIcon(s.carrier)}</span>
-                                        <div>
-                                            <div class="font-bold text-lg">${s.carrier}</div>
-                                            <div class="text-sm text-gray-400">${s.pattern}</div>
-                                        </div>
+                            <div class="flex justify-between mb-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-3xl">${getIcon(s.carrier)}</span>
+                                    <div>
+                                        <div class="font-bold text-lg">${s.carrier}</div>
+                                        <div class="text-sm text-gray-400">${s.pattern}</div>
                                     </div>
-                                    <div class="font-mono text-purple-400 text-sm">${s.tracking_number}</div>
                                 </div>
                                 <button onclick="event.stopPropagation(); removeTracking('${s.tracking_number}')" 
-                                        class="text-gray-400 hover:text-red-400 transition">
-                                    ✕
-                                </button>
+                                        class="text-gray-400 hover:text-red-400">✕</button>
                             </div>
 
+                            <div class="flex gap-2 mb-3">
+                                ${getDataBadge(s.data_source)}
+                                ${s.customs_entry ? '<span class="customs-badge text-white px-2 py-1 rounded text-xs font-semibold">🛃 CUSTOMS</span>' : ''}
+                            </div>
+
+                            <div class="font-mono text-purple-400 text-sm mb-3">${s.tracking_number}</div>
+
+                            ${s.origin && s.destination ? `
+                                <div class="text-sm text-gray-400 mb-3">
+                                    ${s.origin} → ${s.destination}
+                                </div>
+                            ` : ''}
+
                             <div class="mb-4">
-                                <div class="flex items-center justify-between text-sm mb-2">
+                                <div class="flex justify-between text-sm mb-2">
                                     <span class="text-gray-400">Progress</span>
-                                    <span class="text-white font-semibold">${s.completed_hops} of ${s.total_hops} stops</span>
+                                    <span class="font-semibold">${s.completed_hops} of ${s.total_hops} events</span>
                                 </div>
                                 <div class="w-full bg-gray-700 rounded-full h-2.5">
                                     <div class="gradient-bg h-2.5 rounded-full" style="width: ${s.progress}%"></div>
                                 </div>
-                                <div class="text-xs text-gray-400 mt-1">${s.progress}% Complete</div>
                             </div>
 
-                            <div class="space-y-2 text-sm">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-2xl">${getModeIcon(s.mode)}</span>
-                                    <div>
-                                        <div class="text-gray-400">Type</div>
-                                        <div class="font-semibold capitalize">${s.type} • ${s.mode}</div>
-                                    </div>
-                                </div>
-                                <div class="pt-2 border-t border-gray-700">
-                                    <div class="text-gray-400 mb-1">Current Status</div>
-                                    <div class="font-semibold">${s.current_status.replace('_', ' ').toUpperCase()}</div>
-                                    <div class="text-gray-400 mt-1">${s.current_location}</div>
-                                    ${s.current_facility ? `<div class="text-gray-500 text-xs mt-1">${s.current_facility}</div>` : ''}
-                                </div>
+                            <div class="text-sm border-t border-gray-700 pt-3">
+                                <div class="text-gray-400 mb-1">Current Status</div>
+                                <div class="font-semibold">${s.current_status.replace(/_/g, ' ').toUpperCase()}</div>
+                                <div class="text-gray-400 mt-1">${s.current_location}</div>
                             </div>
 
-                            <div class="mt-4 pt-4 border-t border-gray-700 text-center">
-                                <span class="text-purple-400 font-semibold">Click to view ${s.total_hops} detailed hops →</span>
+                            <div class="mt-4 text-center text-purple-400 font-semibold">
+                                Click to view ${s.total_hops} tracking events →
                             </div>
                         </div>
                     `).join('')}
                 </div>
             `;
-            
-            container.innerHTML = html;
         }
 
         function showDetails(trackingNumber) {
@@ -265,87 +348,108 @@
             if (!shipment) return;
 
             const now = new Date();
+            const isRealData = shipment.data_source && shipment.data_source.includes('REAL');
+            const hasCustoms = shipment.hops.some(h => h.status && (h.status.includes('isf') || h.status.includes('customs')));
             
-            const modalContent = `
+            const content = `
                 <div class="space-y-6">
-                    <!-- Header -->
                     <div class="glass rounded-xl p-6">
                         <div class="flex items-center gap-4 mb-4">
-                            <span class="text-5xl">${getCarrierIcon(shipment.carrier)}</span>
-                            <div>
+                            <span class="text-5xl">${getIcon(shipment.carrier)}</span>
+                            <div class="flex-1">
                                 <div class="text-2xl font-bold">${shipment.carrier}</div>
                                 <div class="text-gray-400">${shipment.pattern}</div>
                                 <div class="font-mono text-purple-400 mt-1">${shipment.tracking_number}</div>
                             </div>
+                            <div class="flex flex-col gap-2">
+                                ${getDataBadge(shipment.data_source)}
+                                ${shipment.customs_entry ? `<span class="customs-badge text-white px-3 py-1 rounded text-xs font-semibold">🛃 ${shipment.customs_entry}</span>` : ''}
+                            </div>
                         </div>
                         
-                        <div class="grid grid-cols-3 gap-4 mt-4">
+                        ${isRealData ? `
+                            <div class="real-data-badge text-white rounded-lg p-3 mb-4">
+                                <div class="font-bold">✅ Live Data from ${shipment.carrier} API</div>
+                                <div class="text-sm opacity-90 mt-1">Real-time tracking from official carrier API</div>
+                            </div>
+                        ` : ''}
+
+                        ${hasCustoms ? `
+                            <div class="customs-badge text-white rounded-lg p-3 mb-4">
+                                <div class="font-bold">🛃 US Customs Tracking Active</div>
+                                <div class="text-sm opacity-90 mt-1">ISF filing & CBP clearance included</div>
+                            </div>
+                        ` : ''}
+
+                        ${shipment.origin && shipment.destination ? `
+                            <div class="text-gray-300 mb-3">
+                                📍 ${shipment.origin} → ${shipment.destination}
+                            </div>
+                        ` : ''}
+                        
+                        <div class="grid grid-cols-3 gap-4">
                             <div class="text-center">
                                 <div class="text-3xl font-black gradient-text">${shipment.completed_hops}</div>
-                                <div class="text-sm text-gray-400">Completed</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-3xl font-black text-blue-400">${shipment.total_hops - shipment.completed_hops}</div>
-                                <div class="text-sm text-gray-400">Remaining</div>
+                                <div class="text-sm text-gray-400">Events</div>
                             </div>
                             <div class="text-center">
                                 <div class="text-3xl font-black text-purple-400">${shipment.progress}%</div>
                                 <div class="text-sm text-gray-400">Progress</div>
                             </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-black text-blue-400">${shipment.total_hops}</div>
+                                <div class="text-sm text-gray-400">Total</div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Timeline -->
                     <div class="glass rounded-xl p-6">
-                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-                            <span>🗺️</span> Complete Journey Timeline
-                        </h3>
+                        <h3 class="text-xl font-bold mb-6">🗺️ Tracking Timeline</h3>
                         
                         <div class="space-y-6">
-                            ${shipment.hops.map((hop, index) => {
+                            ${shipment.hops.map((hop, i) => {
                                 const hopTime = new Date(hop.timestamp);
                                 const isPast = hopTime < now;
-                                const isCurrent = index === shipment.completed_hops - 1;
+                                const isCurrent = i === shipment.completed_hops - 1;
+                                const isReal = hop.data_source && hop.data_source.includes('REAL');
+                                const isCustoms = hop.status && (hop.status.includes('isf') || hop.status.includes('customs') || hop.status.includes('entry'));
                                 
                                 return `
                                     <div class="flex gap-4">
-                                        <!-- Timeline Line & Dot -->
                                         <div class="flex flex-col items-center">
                                             <div class="timeline-dot ${isPast ? '' : 'timeline-dot-pending'} ${isCurrent ? 'ring-4 ring-purple-400 ring-opacity-30' : ''}"></div>
-                                            ${index < shipment.hops.length - 1 ? '<div class="timeline-line flex-1 mt-2 mb-2" style="min-height: 60px;"></div>' : ''}
+                                            ${i < shipment.hops.length - 1 ? '<div class="timeline-line mt-2" style="min-height: 80px;"></div>' : ''}
                                         </div>
 
-                                        <!-- Content -->
                                         <div class="flex-1 ${isPast ? '' : 'opacity-50'}">
-                                            <div class="glass rounded-xl p-4 ${isCurrent ? 'ring-2 ring-purple-500' : ''}">
-                                                <div class="flex items-start justify-between mb-2">
+                                            <div class="glass rounded-xl p-4 ${isCurrent ? 'ring-2 ring-purple-500' : ''} ${isCustoms ? 'border-l-4 border-orange-500' : ''}">
+                                                <div class="flex justify-between mb-2">
                                                     <div class="flex-1">
-                                                        <div class="flex items-center gap-2 mb-1">
+                                                        <div class="flex items-center gap-2 mb-2 flex-wrap">
                                                             <span class="px-2 py-1 rounded text-xs font-semibold ${getStatusColor(hop.status)} bg-opacity-20 text-white">
-                                                                ${hop.status.replace('_', ' ').toUpperCase()}
+                                                                ${hop.status.replace(/_/g, ' ').toUpperCase()}
                                                             </span>
-                                                            ${isCurrent ? '<span class="px-2 py-1 rounded text-xs font-semibold bg-purple-500 bg-opacity-20 text-purple-400">CURRENT</span>' : ''}
-                                                            ${hop.scan_type ? `<span class="text-xs text-gray-400">${hop.scan_type}</span>` : ''}
+                                                            ${isCurrent ? '<span class="px-2 py-1 rounded text-xs bg-purple-500 bg-opacity-20 text-purple-400">CURRENT</span>' : ''}
+                                                            ${isReal ? '<span class="px-2 py-1 rounded text-xs real-data-badge text-white">REAL</span>' : ''}
+                                                            ${isCustoms ? '<span class="px-2 py-1 rounded text-xs bg-orange-500 bg-opacity-20 text-orange-400">🛃 CUSTOMS</span>' : ''}
                                                         </div>
                                                         <div class="font-bold text-lg">${hop.description}</div>
                                                         <div class="text-sm text-gray-400 mt-1">${hop.location}</div>
                                                         ${hop.facility ? `<div class="text-xs text-gray-500 mt-1">📍 ${hop.facility}</div>` : ''}
+                                                        ${hop.scan_type ? `<div class="text-xs text-gray-400 mt-1">${hop.scan_type}</div>` : ''}
+                                                        ${hop.detail ? `<div class="text-xs text-gray-400 mt-2 italic">${hop.detail}</div>` : ''}
+                                                        ${hop.note ? `<div class="text-xs text-yellow-400 mt-2">💡 ${hop.note}</div>` : ''}
                                                     </div>
                                                     <div class="text-right ml-4">
-                                                        <div class="text-sm font-semibold whitespace-nowrap">
-                                                            ${new Date(hop.timestamp).toLocaleDateString()}
-                                                        </div>
-                                                        <div class="text-xs text-gray-400 whitespace-nowrap">
-                                                            ${new Date(hop.timestamp).toLocaleTimeString()}
-                                                        </div>
+                                                        <div class="text-sm font-semibold">${hopTime.toLocaleDateString()}</div>
+                                                        <div class="text-xs text-gray-400">${hopTime.toLocaleTimeString()}</div>
                                                     </div>
                                                 </div>
                                                 
-                                                ${hop.employee ? `<div class="text-xs text-gray-400 mt-2">👤 ${hop.employee}</div>` : ''}
-                                                ${hop.flight_number ? `<div class="text-xs text-gray-400 mt-2">✈️ Flight ${hop.flight_number}</div>` : ''}
-                                                ${hop.vessel_name ? `<div class="text-xs text-gray-400 mt-2">🚢 ${hop.vessel_name} (IMO: ${hop.vessel_imo})</div>` : ''}
-                                                ${hop.latitude && hop.longitude ? `<div class="text-xs text-gray-500 mt-2">📍 ${hop.latitude.toFixed(4)}, ${hop.longitude.toFixed(4)}</div>` : ''}
-                                                ${hop.estimated_delivery ? `<div class="text-xs text-green-400 mt-2">🎯 Est. Delivery: ${new Date(hop.estimated_delivery).toLocaleString()}</div>` : ''}
+                                                ${hop.entry_number ? `<div class="text-xs text-orange-300 mt-2">📋 Entry: ${hop.entry_number}</div>` : ''}
+                                                ${hop.exam_type ? `<div class="text-xs text-yellow-300 mt-2">🔍 ${hop.exam_type}</div>` : ''}
+                                                ${hop.duties_amount ? `<div class="text-xs text-green-300 mt-2">💰 ${hop.duties_amount}</div>` : ''}
+                                                ${hop.vessel ? `<div class="text-xs text-cyan-300 mt-2">🚢 ${hop.vessel} ${hop.vessel_imo ? `(IMO: ${hop.vessel_imo})` : ''}</div>` : ''}
                                             </div>
                                         </div>
                                     </div>
@@ -356,7 +460,7 @@
                 </div>
             `;
 
-            document.getElementById('modalContent').innerHTML = modalContent;
+            document.getElementById('modalContent').innerHTML = content;
             document.getElementById('detailModal').classList.add('active');
         }
 
@@ -365,26 +469,21 @@
         }
 
         async function removeTracking(trackingNumber) {
-            if (!confirm('Remove this shipment from tracking?')) return;
-            
+            if (!confirm('Remove this shipment?')) return;
             trackedShipments = trackedShipments.filter(s => s.tracking_number !== trackingNumber);
             renderTrackedShipments();
-            
             try {
                 await fetch(`${API_URL}/api/track/${trackingNumber}`, { method: 'DELETE' });
-            } catch (error) {
-                console.error('Error removing tracking:', error);
-            }
+            } catch (e) {}
         }
 
-        // Close modal on outside click
         document.getElementById('detailModal').addEventListener('click', (e) => {
             if (e.target.id === 'detailModal') closeModal();
         });
 
-        // Initial load
         window.addEventListener('load', () => {
             renderTrackedShipments();
+            checkAPIStatus();
         });
     </script>
 </body>
