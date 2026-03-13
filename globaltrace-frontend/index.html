@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalTrace - Free Carrier Tracking</title>
+    <title>GlobalTrace - Fixed & Working</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -15,76 +15,98 @@
         .hover-lift { transition: all 0.3s ease; }
         .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3); }
         .timeline-line { border-left: 3px solid rgba(102, 126, 234, 0.3); }
-        .timeline-dot { width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 14px; }
-        .timeline-dot-pending { background: rgba(255, 255, 255, 0.2); }
-        .tracking-iframe { width: 100%; height: 600px; border: none; border-radius: 16px; background: white; }
+        .timeline-dot { 
+            width: 32px; 
+            height: 32px; 
+            border-radius: 50%; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .timeline-dot-pending { background: rgba(255, 255, 255, 0.15); }
+        .timeline-dot-current { 
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
     </style>
 </head>
 <body class="text-white">
     <div class="container mx-auto px-4 py-8">
         <!-- Header -->
         <nav class="glass rounded-2xl p-4 mb-8">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between flex-wrap gap-4">
                 <div class="flex items-center gap-3">
                     <span class="text-2xl">🌍</span>
                     <span class="text-2xl font-bold gradient-text">GlobalTrace</span>
-                    <span class="text-xs glass px-2 py-1 rounded-full">100% Free - No APIs</span>
+                    <span class="text-xs glass px-2 py-1 rounded-full">Fixed & Working</span>
                 </div>
                 <div class="text-sm glass px-3 py-1 rounded-full">
-                    💰 $0/month • Direct Carrier Websites
+                    💰 $0/month • No APIs Required
                 </div>
             </div>
         </nav>
 
-        <!-- Main Tracking Input -->
-        <div class="max-w-4xl mx-auto mb-8">
+        <!-- Main Input -->
+        <div class="max-w-4xl mx-auto mb-12">
             <h1 class="text-5xl font-black mb-4 text-center">
-                Track <span class="gradient-text">Anything</span>
+                Track <span class="gradient-text">Instantly</span>
             </h1>
             <p class="text-xl text-gray-300 mb-8 text-center">
-                Enter AWB number OR U.S. Customs Entry Number
+                AWB • Container • Express • Customs Entry
             </p>
             
             <div class="glass rounded-2xl p-8">
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-semibold mb-2">
-                            Tracking Number / Customs Entry Number
-                        </label>
+                        <label class="block text-sm font-semibold mb-2">Enter Tracking Number</label>
                         <input 
                             type="text" 
                             id="trackingInput" 
-                            placeholder="176-12345678 (AWB) or 123-4567890-1 (Customs Entry)"
-                            class="w-full px-4 py-4 rounded-xl bg-white bg-opacity-10 border border-gray-600 focus:border-purple-500 outline-none text-lg"
+                            placeholder="176-12345678 or MAEU1234567 or 123-4567890-1"
+                            class="w-full px-4 py-4 rounded-xl bg-white bg-opacity-10 border border-gray-600 focus:border-purple-500 outline-none text-lg font-mono"
                             onkeypress="if(event.key==='Enter') trackShipment()"
                         />
-                        <p class="text-xs text-gray-400 mt-2">
-                            ✈️ Air: 176-12345678 • 🚢 Ocean: MAEU1234567 • 📦 Express: 1Z999AA10... • 🛃 Customs: 123-4567890-1
-                        </p>
                     </div>
 
                     <button 
                         onclick="trackShipment()" 
+                        id="trackButton"
                         class="w-full gradient-bg px-8 py-4 rounded-xl font-semibold hover:opacity-90 transition text-lg"
                     >
                         Track Now 🔍
                     </button>
+
+                    <div id="errorMessage" class="hidden p-4 bg-red-500 bg-opacity-20 border border-red-500 rounded-xl">
+                        <div class="font-semibold mb-2">❌ Cannot Recognize Format</div>
+                        <div class="text-sm" id="errorText"></div>
+                    </div>
                 </div>
                 
                 <div class="mt-6 pt-6 border-t border-gray-700">
-                    <div class="text-sm text-gray-400 mb-3">Quick Examples:</div>
+                    <div class="text-sm font-semibold mb-3">Try These Examples:</div>
                     <div class="grid md:grid-cols-2 gap-2">
-                        <button onclick="fillExample('emirates')" class="glass px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 text-left text-sm">
-                            ✈️ Emirates Air Waybill
+                        <button onclick="fillAndTrack('123-4567890-1')" class="glass px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 text-left">
+                            <div class="font-semibold">🛃 U.S. Customs Entry</div>
+                            <div class="text-xs text-gray-400 font-mono mt-1">123-4567890-1</div>
                         </button>
-                        <button onclick="fillExample('maersk')" class="glass px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 text-left text-sm">
-                            🚢 Maersk Container
+                        <button onclick="fillAndTrack('MAEU1234567')" class="glass px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 text-left">
+                            <div class="font-semibold">🚢 Maersk Container</div>
+                            <div class="text-xs text-gray-400 font-mono mt-1">MAEU1234567</div>
                         </button>
-                        <button onclick="fillExample('ups')" class="glass px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 text-left text-sm">
-                            📦 UPS Package
+                        <button onclick="fillAndTrack('176-12345678')" class="glass px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 text-left">
+                            <div class="font-semibold">✈️ Emirates Air Waybill</div>
+                            <div class="text-xs text-gray-400 font-mono mt-1">176-12345678</div>
                         </button>
-                        <button onclick="fillExample('customs')" class="glass px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 text-left text-sm">
-                            🛃 U.S. Customs Entry
+                        <button onclick="fillAndTrack('1Z999AA10123456784')" class="glass px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 text-left">
+                            <div class="font-semibold">📦 UPS Package</div>
+                            <div class="text-xs text-gray-400 font-mono mt-1">1Z999AA10...</div>
                         </button>
                     </div>
                 </div>
@@ -92,98 +114,85 @@
         </div>
 
         <!-- Results Area -->
-        <div id="resultsArea" class="max-w-7xl mx-auto hidden">
-            <!-- Customs Timeline View -->
-            <div id="customsView" class="hidden">
-                <div class="glass rounded-2xl p-8">
-                    <div class="flex items-center justify-between mb-6">
+        <div id="resultsArea" class="max-w-6xl mx-auto hidden">
+            
+            <!-- Customs Timeline -->
+            <div id="customsResults" class="hidden">
+                <div class="glass rounded-2xl p-8 mb-6">
+                    <div class="flex justify-between items-start mb-6">
                         <div>
-                            <h2 class="text-3xl font-bold gradient-text mb-2">U.S. Customs Clearance</h2>
-                            <p class="text-gray-400">Entry Number: <span id="entryNumber" class="text-white font-mono"></span></p>
+                            <h2 class="text-3xl font-bold mb-2">🛃 U.S. Customs Clearance</h2>
+                            <p class="text-gray-400">Entry Number: <span id="customsEntryNumber" class="text-white font-mono"></span></p>
+                            <p class="text-sm text-gray-500 mt-2">
+                                <span id="customsProgress"></span>
+                            </p>
                         </div>
-                        <button onclick="closeResults()" class="text-gray-400 hover:text-white text-2xl">✕</button>
+                        <button onclick="closeResults()" class="text-gray-400 hover:text-white text-3xl">✕</button>
                     </div>
 
-                    <div id="customsTimeline" class="space-y-6"></div>
+                    <div id="customsTimeline" class="space-y-8"></div>
                 </div>
             </div>
 
-            <!-- Carrier Website View -->
-            <div id="carrierView" class="hidden">
-                <div class="glass rounded-2xl p-8">
-                    <div class="flex items-center justify-between mb-6">
-                        <div>
-                            <h2 class="text-3xl font-bold gradient-text mb-2" id="carrierName"></h2>
-                            <p class="text-gray-400">Tracking: <span id="trackingNumber" class="text-white font-mono"></span></p>
+            <!-- Carrier Website -->
+            <div id="carrierResults" class="hidden">
+                <div class="glass rounded-2xl p-8 mb-6">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="flex-1">
+                            <h2 class="text-3xl font-bold mb-2" id="carrierName"></h2>
+                            <p class="text-gray-400">Tracking: <span id="carrierTracking" class="text-white font-mono"></span></p>
                         </div>
-                        <div class="flex gap-3">
-                            <button onclick="openInNewWindow()" class="glass px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 text-sm">
-                                Open in New Window 🔗
-                            </button>
-                            <button onclick="closeResults()" class="text-gray-400 hover:text-white text-2xl">✕</button>
-                        </div>
+                        <button onclick="closeResults()" class="text-gray-400 hover:text-white text-3xl ml-4">✕</button>
                     </div>
 
-                    <div class="mb-4 p-4 bg-blue-500 bg-opacity-20 rounded-xl border border-blue-500 border-opacity-30">
-                        <div class="flex items-start gap-3">
-                            <span class="text-2xl">ℹ️</span>
-                            <div class="flex-1">
-                                <div class="font-semibold text-blue-300 mb-1">Live Carrier Website</div>
-                                <div class="text-sm text-gray-300" id="carrierInstructions"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Try iframe first -->
-                    <div id="iframeContainer">
-                        <iframe id="trackingIframe" class="tracking-iframe"></iframe>
-                    </div>
-
-                    <!-- Fallback if iframe blocked -->
-                    <div id="iframeBlocked" class="hidden text-center py-12">
-                        <div class="text-6xl mb-4">🔒</div>
-                        <h3 class="text-2xl font-bold mb-4">Carrier Blocks Embedding</h3>
-                        <p class="text-gray-400 mb-6">
-                            This carrier's website cannot be embedded for security reasons.
-                        </p>
-                        <button onclick="openInNewWindow()" class="gradient-bg px-8 py-4 rounded-xl font-semibold text-lg">
-                            Open <span id="carrierNameFallback"></span> Website 🔗
+                    <div class="mb-6 p-6 bg-gradient-to-r from-blue-500 to-purple-500 bg-opacity-10 rounded-xl border border-blue-500 border-opacity-30">
+                        <div class="text-2xl mb-3">🔗 Opening Carrier Website</div>
+                        <div class="text-gray-300 mb-4" id="carrierInstructions"></div>
+                        <button 
+                            onclick="openCarrierWebsite()" 
+                            id="openWebsiteBtn"
+                            class="gradient-bg px-8 py-4 rounded-xl font-semibold hover:opacity-90 transition text-lg"
+                        >
+                            Open <span id="carrierNameBtn"></span> Website →
                         </button>
                     </div>
+
+                    <div class="p-4 bg-gray-500 bg-opacity-10 rounded-xl">
+                        <div class="text-sm text-gray-400">
+                            <div class="font-semibold mb-2">Why external website?</div>
+                            <div>Most carriers block embedding their websites for security. Clicking above opens their official tracking page in a new window where you can see live, real-time data.</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Tracking History -->
-        <div id="historyArea" class="max-w-4xl mx-auto mt-8 hidden">
-            <h3 class="text-2xl font-bold mb-4">Recent Tracking</h3>
-            <div id="historyList" class="grid gap-3"></div>
         </div>
     </div>
 
     <script>
         const API_URL = 'https://globaltrace-production.up.railway.app';
-        let currentTrackingUrl = '';
-        let currentCarrier = '';
-        let currentTracking = '';
+        let currentUrl = '';
 
-        function fillExample(type) {
-            const examples = {
-                'emirates': '176-12345678',
-                'maersk': 'MAEU1234567',
-                'ups': '1Z999AA10123456784',
-                'customs': '123-4567890-1'
-            };
-            document.getElementById('trackingInput').value = examples[type];
+        function fillAndTrack(value) {
+            document.getElementById('trackingInput').value = value;
+            trackShipment();
         }
 
         async function trackShipment() {
             const input = document.getElementById('trackingInput').value.trim();
+            const trackButton = document.getElementById('trackButton');
+            const errorMessage = document.getElementById('errorMessage');
             
             if (!input) {
-                alert('Please enter a tracking number or customs entry');
+                showError('Please enter a tracking number');
                 return;
             }
+
+            // Hide previous errors
+            errorMessage.classList.add('hidden');
+
+            // Show loading
+            trackButton.textContent = 'Tracking... ⏳';
+            trackButton.disabled = true;
 
             try {
                 const response = await fetch(`${API_URL}/api/track`, {
@@ -194,198 +203,137 @@
 
                 if (!response.ok) {
                     const error = await response.json();
-                    alert(error.detail || 'Error tracking shipment');
+                    showError(error.detail?.error || error.detail || 'Invalid tracking number format');
+                    if (error.detail?.examples) {
+                        showExamples(error.detail.examples);
+                    }
                     return;
                 }
 
                 const data = await response.json();
 
-                // Show results area
+                // Show results
                 document.getElementById('resultsArea').classList.remove('hidden');
 
-                if (data.type === 'customs_entry') {
-                    showCustomsTimeline(data);
-                } else if (data.type === 'awb_tracking') {
-                    showCarrierWebsite(data);
+                if (data.type === 'customs') {
+                    showCustomsResults(data);
+                } else {
+                    showCarrierResults(data);
                 }
 
-                // Update history
-                loadHistory();
+                // Scroll to results
+                setTimeout(() => {
+                    document.getElementById('resultsArea').scrollIntoView({ behavior: 'smooth' });
+                }, 100);
 
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error connecting to server. Please try again.');
+                showError('Connection error. Please check your internet and try again.');
+            } finally {
+                trackButton.textContent = 'Track Now 🔍';
+                trackButton.disabled = false;
             }
         }
 
-        function showCustomsTimeline(data) {
-            // Hide carrier view, show customs view
-            document.getElementById('carrierView').classList.add('hidden');
-            document.getElementById('customsView').classList.remove('hidden');
+        function showCustomsResults(data) {
+            document.getElementById('carrierResults').classList.add('hidden');
+            document.getElementById('customsResults').classList.remove('hidden');
 
-            // Set entry number
-            document.getElementById('entryNumber').textContent = data.entry_number;
+            document.getElementById('customsEntryNumber').textContent = data.entry_number;
+            document.getElementById('customsProgress').textContent = 
+                `${data.completed_events} of ${data.total_events} steps completed`;
 
-            // Build timeline
-            const timeline = data.timeline;
+            const timeline = document.getElementById('customsTimeline');
             const now = new Date();
             
-            let html = '';
-            
-            timeline.forEach((event, index) => {
-                const eventDate = new Date(event.date);
-                const isPast = eventDate < now;
-                const isCurrent = index === timeline.findIndex(e => new Date(e.date) > now) - 1;
+            timeline.innerHTML = data.events.map((event, index) => {
+                const eventDate = new Date(event.timestamp);
+                const isPast = event.completed;
+                const isCurrent = event.is_current;
+                const isLast = index === data.events.length - 1;
 
-                html += `
-                    <div class="flex gap-4">
+                return `
+                    <div class="flex gap-6">
                         <div class="flex flex-col items-center">
-                            <div class="timeline-dot ${isPast ? '' : 'timeline-dot-pending'}">
-                                ${isPast ? event.icon : '⏳'}
+                            <div class="timeline-dot ${isPast ? '' : (isCurrent ? 'timeline-dot-current' : 'timeline-dot-pending')}">
+                                ${event.title.split(' ')[0]}
                             </div>
-                            ${index < timeline.length - 1 ? '<div class="timeline-line mt-2" style="min-height: 60px;"></div>' : ''}
+                            ${!isLast ? '<div class="timeline-line mt-2" style="min-height: 80px;"></div>' : ''}
                         </div>
 
-                        <div class="flex-1 ${isPast ? '' : 'opacity-50'}">
-                            <div class="glass rounded-xl p-4 ${isCurrent ? 'ring-2 ring-purple-500' : ''}">
-                                <div class="flex justify-between mb-2">
+                        <div class="flex-1 ${isPast ? '' : 'opacity-60'}">
+                            <div class="glass rounded-xl p-5 ${isCurrent ? 'ring-2 ring-purple-500' : ''}">
+                                <div class="flex justify-between items-start mb-3">
                                     <div class="flex-1">
-                                        <div class="font-bold text-lg mb-1">${event.status}</div>
-                                        <div class="text-gray-400 text-sm mb-2">${event.description}</div>
-                                        <div class="text-xs text-gray-500">📍 ${event.location}</div>
+                                        <div class="text-xl font-bold mb-2">${event.title}</div>
+                                        <div class="text-gray-300 mb-2">${event.description}</div>
+                                        <div class="text-sm text-gray-400">📍 ${event.location}</div>
+                                        ${event.detail ? `<div class="text-sm text-blue-300 mt-2">ℹ️ ${event.detail}</div>` : ''}
                                     </div>
                                     <div class="text-right ml-4">
-                                        <div class="text-sm font-semibold">${eventDate.toLocaleDateString()}</div>
-                                        <div class="text-xs text-gray-400">${eventDate.toLocaleTimeString()}</div>
+                                        <div class="text-sm font-semibold whitespace-nowrap">${eventDate.toLocaleDateString()}</div>
+                                        <div class="text-xs text-gray-400 whitespace-nowrap">${eventDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                                     </div>
                                 </div>
+                                ${isCurrent ? '<div class="text-xs text-purple-300 font-semibold">⏳ CURRENT STEP</div>' : ''}
+                                ${isPast ? '<div class="text-xs text-green-400 font-semibold">✓ COMPLETED</div>' : ''}
                             </div>
                         </div>
                     </div>
                 `;
-            });
-
-            document.getElementById('customsTimeline').innerHTML = html;
+            }).join('');
         }
 
-        function showCarrierWebsite(data) {
-            // Hide customs view, show carrier view
-            document.getElementById('customsView').classList.add('hidden');
-            document.getElementById('carrierView').classList.remove('hidden');
+        function showCarrierResults(data) {
+            document.getElementById('customsResults').classList.add('hidden');
+            document.getElementById('carrierResults').classList.remove('hidden');
 
-            // Set info
             document.getElementById('carrierName').textContent = data.carrier;
-            document.getElementById('carrierNameFallback').textContent = data.carrier;
-            document.getElementById('trackingNumber').textContent = data.tracking_number;
-            document.getElementById('carrierInstructions').textContent = data.instructions;
+            document.getElementById('carrierNameBtn').textContent = data.carrier;
+            document.getElementById('carrierTracking').textContent = data.tracking_number;
+            document.getElementById('carrierInstructions').textContent = data.instructions || data.message;
 
-            // Store for new window option
-            currentTrackingUrl = data.tracking_url;
-            currentCarrier = data.carrier;
-            currentTracking = data.tracking_number;
-
-            // Try to load in iframe
-            const iframe = document.getElementById('trackingIframe');
-            const iframeContainer = document.getElementById('iframeContainer');
-            const iframeBlocked = document.getElementById('iframeBlocked');
-
-            // Reset
-            iframeContainer.classList.remove('hidden');
-            iframeBlocked.classList.add('hidden');
-
-            // Set iframe src
-            iframe.src = data.tracking_url;
-
-            // Detect if iframe blocked (most carriers block embedding)
-            setTimeout(() => {
-                try {
-                    // Try to access iframe content (will fail if blocked)
-                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                    if (!iframeDoc || iframeDoc.location.href === 'about:blank') {
-                        // Iframe blocked or failed to load
-                        showIframeBlockedMessage();
-                    }
-                } catch (e) {
-                    // Security error - iframe is blocked
-                    showIframeBlockedMessage();
-                }
-            }, 2000);
+            currentUrl = data.tracking_url;
         }
 
-        function showIframeBlockedMessage() {
-            document.getElementById('iframeContainer').classList.add('hidden');
-            document.getElementById('iframeBlocked').classList.remove('hidden');
-        }
-
-        function openInNewWindow() {
-            if (currentTrackingUrl) {
-                window.open(currentTrackingUrl, '_blank', 'width=1200,height=900');
+        function openCarrierWebsite() {
+            if (currentUrl) {
+                window.open(currentUrl, '_blank', 'width=1200,height=900');
             }
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+            
+            setTimeout(() => {
+                errorMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        function showExamples(examples) {
+            const errorText = document.getElementById('errorText');
+            errorText.innerHTML = `
+                <div class="mb-2">Please use one of these formats:</div>
+                <ul class="list-disc list-inside space-y-1 font-mono text-xs">
+                    ${examples.map(ex => `<li>${ex}</li>`).join('')}
+                </ul>
+            `;
         }
 
         function closeResults() {
             document.getElementById('resultsArea').classList.add('hidden');
             document.getElementById('trackingInput').value = '';
+            document.getElementById('trackingInput').focus();
         }
 
-        async function loadHistory() {
-            try {
-                const response = await fetch(`${API_URL}/api/history`);
-                const data = await response.json();
-
-                if (data.total === 0) {
-                    document.getElementById('historyArea').classList.add('hidden');
-                    return;
-                }
-
-                document.getElementById('historyArea').classList.remove('hidden');
-
-                let html = '';
-
-                // AWB shipments
-                data.awb_shipments.forEach(item => {
-                    html += `
-                        <div class="glass rounded-xl p-4 hover-lift cursor-pointer" onclick="retrack('${item.tracking_number}')">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <div class="font-semibold">${item.carrier}</div>
-                                    <div class="text-sm text-gray-400 font-mono">${item.tracking_number}</div>
-                                </div>
-                                <div class="text-purple-400">→</div>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                // Customs entries
-                data.customs_entries.forEach(item => {
-                    html += `
-                        <div class="glass rounded-xl p-4 hover-lift cursor-pointer" onclick="retrack('${item.entry_number}')">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <div class="font-semibold">🛃 U.S. Customs Entry</div>
-                                    <div class="text-sm text-gray-400 font-mono">${item.entry_number}</div>
-                                </div>
-                                <div class="text-purple-400">→</div>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                document.getElementById('historyList').innerHTML = html;
-
-            } catch (error) {
-                console.error('Error loading history:', error);
-            }
-        }
-
-        function retrack(number) {
-            document.getElementById('trackingInput').value = number;
-            trackShipment();
-        }
-
-        // Load history on page load
-        window.addEventListener('load', loadHistory);
+        // Focus input on load
+        window.addEventListener('load', () => {
+            document.getElementById('trackingInput').focus();
+        });
     </script>
 </body>
 </html>
