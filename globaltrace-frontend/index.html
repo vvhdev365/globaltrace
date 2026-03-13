@@ -119,58 +119,32 @@
                                     📋 Copy
                                 </button>
                             </div>
-                            <div id="copyFeedback" class="text-xs text-green-400 mt-1 hidden">✓ Copied!</div>
+                            <div id="copyFeedback" class="text-xs text-green-400 mt-1 hidden">✓ Copied to clipboard!</div>
                         </div>
 
-                        <p class="text-sm text-gray-400" id="carrierInstructions"></p>
+                        <p class="text-sm text-gray-400 mb-6" id="carrierInstructions"></p>
                     </div>
                     <button onclick="closeResult()" class="text-gray-400 hover:text-white text-3xl ml-4">✕</button>
                 </div>
 
-                <!-- iframe Container -->
-                <div id="iframeContainer" class="mb-4">
-                    <div class="mb-2 p-3 bg-blue-500 bg-opacity-10 rounded-lg">
-                        <div class="text-sm">
-                            <span class="font-semibold">📍 Embedded Tracking Page</span>
-                            <span class="text-gray-400 ml-2">(Loading...)</span>
-                        </div>
+                <!-- Main Action -->
+                <div class="p-6 bg-gradient-to-r from-purple-500 to-blue-500 bg-opacity-10 border border-purple-500 border-opacity-30 rounded-xl mb-4">
+                    <div class="text-lg font-semibold mb-2">✅ Ready to Track</div>
+                    <div class="text-sm text-gray-300 mb-4">
+                        Click below to open the official carrier tracking website.
+                        Your tracking number has been copied for easy pasting.
                     </div>
-                    <div class="relative">
-                        <iframe 
-                            id="trackingIframe" 
-                            class="w-full rounded-xl border-2 border-gray-700"
-                            style="height: 600px; background: white;"
-                        ></iframe>
-                        <div id="iframeLoader" class="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 rounded-xl">
-                            <div class="text-center">
-                                <div class="text-4xl mb-2">⏳</div>
-                                <div>Loading carrier website...</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Fallback Container (if iframe blocked) -->
-                <div id="fallbackContainer" class="hidden">
-                    <div class="p-6 bg-yellow-500 bg-opacity-20 border border-yellow-500 rounded-xl mb-4">
-                        <div class="font-bold mb-2">🔒 Carrier Blocks Embedding</div>
-                        <div class="text-sm text-gray-300">
-                            This carrier's website cannot be embedded for security reasons.
-                            Click below to open in a new window.
-                        </div>
-                    </div>
-
                     <button 
                         onclick="openCarrierSite()" 
-                        class="w-full gradient-bg px-8 py-4 rounded-xl font-semibold hover:opacity-90 transition text-xl mb-2"
+                        class="w-full gradient-bg px-8 py-4 rounded-xl font-semibold hover:opacity-90 transition text-xl"
                     >
-                        Open <span id="carrierNameBtn"></span> Website in New Window →
+                        Open <span id="carrierNameBtn"></span> Tracking Website →
                     </button>
                 </div>
 
                 <button 
                     onclick="closeResult()" 
-                    class="w-full glass px-6 py-3 rounded-xl hover:bg-white hover:bg-opacity-10 transition mt-4"
+                    class="w-full glass px-6 py-3 rounded-xl hover:bg-white hover:bg-opacity-10 transition"
                 >
                     ← Track Another Shipment
                 </button>
@@ -182,7 +156,7 @@
             <h3 class="text-xl font-bold mb-3">🛃 Need U.S. Customs Entry Status?</h3>
             <div class="text-gray-300 mb-4">
                 <p class="mb-2">U.S. Customs data is NOT publicly available. No free API exists.</p>
-                <p class="mb-4">For entry status (like <span class="font-mono">8KP-0074459-0</span>), you must:</p>
+                <p class="mb-4">For entry status (format: <span class="font-mono">XXX-XXXXXXX-X</span>), you must:</p>
             </div>
             
             <div class="space-y-3">
@@ -213,7 +187,6 @@
     <script>
         const API_URL = 'https://globaltrace-production.up.railway.app';
         let currentUrl = '';
-        let currentSearchUrl = '';
 
         const carrierIcons = {
             'UPS': '📦',
@@ -282,81 +255,22 @@
             document.getElementById('carrierName').textContent = data.carrier;
             document.getElementById('carrierNameBtn').textContent = data.carrier;
             document.getElementById('trackingNumberCopy').value = data.tracking_number;
-            document.getElementById('carrierInstructions').textContent = data.note || `Paste tracking number: ${data.tracking_number}`;
+            document.getElementById('carrierInstructions').textContent = data.note || `Paste tracking number in carrier website: ${data.tracking_number}`;
             
             currentUrl = data.url;
-            currentSearchUrl = data.search_url;
 
-            // Try iframe embedding
-            tryIframeLoad(data.url, data.can_embed);
+            // Auto-copy tracking number
+            copyTracking();
 
             setTimeout(() => {
                 document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth' });
             }, 100);
         }
 
-        function tryIframeLoad(url, canEmbed) {
-            const iframeContainer = document.getElementById('iframeContainer');
-            const fallbackContainer = document.getElementById('fallbackContainer');
-            const iframe = document.getElementById('trackingIframe');
-            const loader = document.getElementById('iframeLoader');
-
-            if (!canEmbed) {
-                // Don't even try if we know it won't work
-                showFallback();
-                return;
-            }
-
-            // Show iframe, try to load
-            iframeContainer.classList.remove('hidden');
-            fallbackContainer.classList.add('hidden');
-            loader.classList.remove('hidden');
-
-            iframe.src = url;
-
-            // Detect if iframe loads successfully
-            let iframeLoaded = false;
-            
-            iframe.onload = function() {
-                iframeLoaded = true;
-                loader.classList.add('hidden');
-                
-                // Try to detect if iframe content loaded
-                setTimeout(() => {
-                    try {
-                        // This will throw error if blocked by CORS
-                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                        if (!iframeDoc || !iframeDoc.body || iframeDoc.body.innerHTML.length === 0) {
-                            showFallback();
-                        }
-                    } catch (e) {
-                        // Blocked by CORS - show fallback
-                        showFallback();
-                    }
-                }, 1000);
-            };
-
-            iframe.onerror = function() {
-                showFallback();
-            };
-
-            // Timeout fallback
-            setTimeout(() => {
-                if (!iframeLoaded) {
-                    showFallback();
-                }
-            }, 5000);
-        }
-
-        function showFallback() {
-            document.getElementById('iframeContainer').classList.add('hidden');
-            document.getElementById('fallbackContainer').classList.remove('hidden');
-        }
-
         function copyTracking() {
             const input = document.getElementById('trackingNumberCopy');
             input.select();
-            input.setSelectionRange(0, 99999); // Mobile
+            input.setSelectionRange(0, 99999); // For mobile
             
             navigator.clipboard.writeText(input.value).then(() => {
                 const feedback = document.getElementById('copyFeedback');
@@ -364,6 +278,8 @@
                 setTimeout(() => {
                     feedback.classList.add('hidden');
                 }, 2000);
+            }).catch(err => {
+                console.log('Copy failed:', err);
             });
         }
 
