@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalTrace - Fixed & Working</title>
+    <title>GlobalTrace - Honest Tracking</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -12,165 +12,172 @@
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .gradient-text { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .hover-lift { transition: all 0.3s ease; }
-        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3); }
-        .timeline-line { border-left: 3px solid rgba(102, 126, 234, 0.3); }
-        .timeline-dot { 
-            width: 32px; 
-            height: 32px; 
-            border-radius: 50%; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 16px;
-            flex-shrink: 0;
-        }
-        .timeline-dot-pending { background: rgba(255, 255, 255, 0.15); }
-        .timeline-dot-current { 
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
     </style>
 </head>
 <body class="text-white">
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
         <!-- Header -->
         <nav class="glass rounded-2xl p-4 mb-8">
             <div class="flex items-center justify-between flex-wrap gap-4">
                 <div class="flex items-center gap-3">
                     <span class="text-2xl">🌍</span>
                     <span class="text-2xl font-bold gradient-text">GlobalTrace</span>
-                    <span class="text-xs glass px-2 py-1 rounded-full">Fixed & Working</span>
+                    <span class="text-xs glass px-2 py-1 rounded-full">Real Data Only</span>
                 </div>
                 <div class="text-sm glass px-3 py-1 rounded-full">
-                    💰 $0/month • No APIs Required
+                    ✅ No Fake Data • No Simulation
                 </div>
             </div>
         </nav>
 
-        <!-- Main Input -->
-        <div class="max-w-4xl mx-auto mb-12">
-            <h1 class="text-5xl font-black mb-4 text-center">
-                Track <span class="gradient-text">Instantly</span>
+        <!-- What This Does -->
+        <div class="glass rounded-2xl p-6 mb-8">
+            <h2 class="text-xl font-bold mb-3">✅ What This Platform Does:</h2>
+            <ul class="space-y-2 text-gray-300">
+                <li>• Detects your carrier from tracking number</li>
+                <li>• Opens the carrier's official tracking website</li>
+                <li>• Shows you REAL live data from the carrier</li>
+            </ul>
+            
+            <h2 class="text-xl font-bold mt-6 mb-3">❌ What This Platform Does NOT Do:</h2>
+            <ul class="space-y-2 text-gray-300">
+                <li>• Does NOT show fake timelines</li>
+                <li>• Does NOT simulate data</li>
+                <li>• Does NOT have access to U.S. Customs data</li>
+            </ul>
+        </div>
+
+        <!-- Main Tracking -->
+        <div class="glass rounded-2xl p-8 mb-8">
+            <h1 class="text-4xl font-black mb-4 text-center">
+                Track Your <span class="gradient-text">Shipment</span>
             </h1>
-            <p class="text-xl text-gray-300 mb-8 text-center">
-                AWB • Container • Express • Customs Entry
+            <p class="text-center text-gray-300 mb-8">
+                Opens official carrier tracking website
             </p>
             
-            <div class="glass rounded-2xl p-8">
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-semibold mb-2">Enter Tracking Number</label>
-                        <input 
-                            type="text" 
-                            id="trackingInput" 
-                            placeholder="8KP-0074459-0 or MAEU1234567 or 176-12345678"
-                            class="w-full px-4 py-4 rounded-xl bg-white bg-opacity-10 border border-gray-600 focus:border-purple-500 outline-none text-lg font-mono"
-                            onkeypress="if(event.key==='Enter') trackShipment()"
-                        />
-                    </div>
+            <div class="space-y-4">
+                <input 
+                    type="text" 
+                    id="trackingInput" 
+                    placeholder="Enter tracking number..."
+                    class="w-full px-4 py-4 rounded-xl bg-white bg-opacity-10 border border-gray-600 focus:border-purple-500 outline-none text-lg font-mono text-center"
+                    onkeypress="if(event.key==='Enter') trackShipment()"
+                />
 
-                    <button 
-                        onclick="trackShipment()" 
-                        id="trackButton"
-                        class="w-full gradient-bg px-8 py-4 rounded-xl font-semibold hover:opacity-90 transition text-lg"
-                    >
-                        Track Now 🔍
-                    </button>
+                <button 
+                    onclick="trackShipment()" 
+                    id="trackButton"
+                    class="w-full gradient-bg px-8 py-4 rounded-xl font-semibold hover:opacity-90 transition text-lg"
+                >
+                    Find Carrier Website 🔍
+                </button>
 
-                    <div id="errorMessage" class="hidden p-4 bg-red-500 bg-opacity-20 border border-red-500 rounded-xl">
-                        <div class="font-semibold mb-2">❌ Cannot Recognize Format</div>
-                        <div class="text-sm" id="errorText"></div>
-                    </div>
+                <div id="errorMessage" class="hidden p-4 bg-red-500 bg-opacity-20 border border-red-500 rounded-xl">
+                    <div class="font-semibold mb-2">❌ Cannot Recognize Format</div>
+                    <div class="text-sm" id="errorText"></div>
                 </div>
-                
-                <div class="mt-6 pt-6 border-t border-gray-700">
-                    <div class="text-sm font-semibold mb-3">Try These Examples:</div>
-                    <div class="grid md:grid-cols-2 gap-2">
-                        <button onclick="fillAndTrack('8KP-0074459-0')" class="glass px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 text-left">
-                            <div class="font-semibold">🛃 U.S. Customs Entry</div>
-                            <div class="text-xs text-gray-400 font-mono mt-1">8KP-0074459-0</div>
-                        </button>
-                        <button onclick="fillAndTrack('MAEU1234567')" class="glass px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 text-left">
-                            <div class="font-semibold">🚢 Maersk Container</div>
-                            <div class="text-xs text-gray-400 font-mono mt-1">MAEU1234567</div>
-                        </button>
-                        <button onclick="fillAndTrack('176-12345678')" class="glass px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 text-left">
-                            <div class="font-semibold">✈️ Emirates Air Waybill</div>
-                            <div class="text-xs text-gray-400 font-mono mt-1">176-12345678</div>
-                        </button>
-                        <button onclick="fillAndTrack('1Z999AA10123456784')" class="glass px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 text-left">
-                            <div class="font-semibold">📦 UPS Package</div>
-                            <div class="text-xs text-gray-400 font-mono mt-1">1Z999AA10...</div>
-                        </button>
-                    </div>
+            </div>
+            
+            <!-- Examples -->
+            <div class="mt-8 pt-6 border-t border-gray-700">
+                <div class="text-sm font-semibold mb-3">Quick Examples:</div>
+                <div class="grid md:grid-cols-3 gap-2">
+                    <button onclick="fillAndTrack('MAEU1234567')" class="glass px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 text-sm">
+                        🚢 Maersk
+                    </button>
+                    <button onclick="fillAndTrack('176-12345678')" class="glass px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 text-sm">
+                        ✈️ Emirates
+                    </button>
+                    <button onclick="fillAndTrack('1Z999AA10123456784')" class="glass px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 text-sm">
+                        📦 UPS
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Results Area -->
-        <div id="resultsArea" class="max-w-6xl mx-auto hidden">
+        <!-- Result -->
+        <div id="resultArea" class="hidden">
+            <div class="glass rounded-2xl p-8 mb-8">
+                <div class="text-center mb-6">
+                    <div class="text-6xl mb-4" id="carrierIcon">📦</div>
+                    <h2 class="text-3xl font-bold mb-2" id="carrierName"></h2>
+                    <p class="text-gray-400 font-mono" id="trackingNumber"></p>
+                </div>
+
+                <div class="p-6 bg-green-500 bg-opacity-20 border border-green-500 rounded-xl mb-6">
+                    <div class="font-bold text-lg mb-2">✅ Opening Official Carrier Website</div>
+                    <div class="text-sm text-gray-300" id="carrierMessage"></div>
+                </div>
+
+                <button 
+                    onclick="openCarrierSite()" 
+                    id="openButton"
+                    class="w-full gradient-bg px-8 py-4 rounded-xl font-semibold hover:opacity-90 transition text-xl mb-4"
+                >
+                    Open <span id="carrierNameBtn"></span> Website →
+                </button>
+
+                <button 
+                    onclick="closeResult()" 
+                    class="w-full glass px-6 py-3 rounded-xl hover:bg-white hover:bg-opacity-10 transition"
+                >
+                    ← Track Another Shipment
+                </button>
+            </div>
+        </div>
+
+        <!-- U.S. Customs Info -->
+        <div class="glass rounded-2xl p-6">
+            <h3 class="text-xl font-bold mb-3">🛃 Need U.S. Customs Entry Status?</h3>
+            <div class="text-gray-300 mb-4">
+                <p class="mb-2">U.S. Customs data is NOT publicly available. No free API exists.</p>
+                <p class="mb-4">For entry status (like <span class="font-mono">8KP-0074459-0</span>), you must:</p>
+            </div>
             
-            <!-- Customs Timeline -->
-            <div id="customsResults" class="hidden">
-                <div class="glass rounded-2xl p-8 mb-6">
-                    <div class="flex justify-between items-start mb-6">
-                        <div>
-                            <h2 class="text-3xl font-bold mb-2">🛃 U.S. Customs Clearance</h2>
-                            <p class="text-gray-400">Entry Number: <span id="customsEntryNumber" class="text-white font-mono"></span></p>
-                            <p class="text-sm text-gray-500 mt-2">
-                                <span id="customsProgress"></span>
-                            </p>
-                        </div>
-                        <button onclick="closeResults()" class="text-gray-400 hover:text-white text-3xl">✕</button>
-                    </div>
-
-                    <div id="customsTimeline" class="space-y-8"></div>
+            <div class="space-y-3">
+                <div class="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 border-opacity-30 rounded-lg">
+                    <div class="font-semibold mb-1">1. Contact Your Customs Broker</div>
+                    <div class="text-sm text-gray-400">The filer code (e.g., "8KP") identifies your broker. They have ACE access.</div>
+                </div>
+                
+                <div class="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 border-opacity-30 rounded-lg">
+                    <div class="font-semibold mb-1">2. Use ACE Secure Data Portal</div>
+                    <div class="text-sm text-gray-400">If you're a registered importer: <a href="https://ace.cbp.dhs.gov/" target="_blank" class="underline">ace.cbp.dhs.gov</a></div>
+                </div>
+                
+                <div class="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 border-opacity-30 rounded-lg">
+                    <div class="font-semibold mb-1">3. Ask Your Freight Forwarder</div>
+                    <div class="text-sm text-gray-400">They can check status through broker portals</div>
                 </div>
             </div>
+        </div>
 
-            <!-- Carrier Website -->
-            <div id="carrierResults" class="hidden">
-                <div class="glass rounded-2xl p-8 mb-6">
-                    <div class="flex justify-between items-start mb-6">
-                        <div class="flex-1">
-                            <h2 class="text-3xl font-bold mb-2" id="carrierName"></h2>
-                            <p class="text-gray-400">Tracking: <span id="carrierTracking" class="text-white font-mono"></span></p>
-                        </div>
-                        <button onclick="closeResults()" class="text-gray-400 hover:text-white text-3xl ml-4">✕</button>
-                    </div>
-
-                    <div class="mb-6 p-6 bg-gradient-to-r from-blue-500 to-purple-500 bg-opacity-10 rounded-xl border border-blue-500 border-opacity-30">
-                        <div class="text-2xl mb-3">🔗 Opening Carrier Website</div>
-                        <div class="text-gray-300 mb-4" id="carrierInstructions"></div>
-                        <button 
-                            onclick="openCarrierWebsite()" 
-                            id="openWebsiteBtn"
-                            class="gradient-bg px-8 py-4 rounded-xl font-semibold hover:opacity-90 transition text-lg"
-                        >
-                            Open <span id="carrierNameBtn"></span> Website →
-                        </button>
-                    </div>
-
-                    <div class="p-4 bg-gray-500 bg-opacity-10 rounded-xl">
-                        <div class="text-sm text-gray-400">
-                            <div class="font-semibold mb-2">Why external website?</div>
-                            <div>Most carriers block embedding their websites for security. Clicking above opens their official tracking page in a new window where you can see live, real-time data.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <!-- Footer -->
+        <div class="text-center mt-8 text-sm text-gray-500">
+            <p>This platform only provides links to official carrier websites.</p>
+            <p class="mt-1">All tracking data comes directly from carriers - we don't store or simulate anything.</p>
         </div>
     </div>
 
     <script>
         const API_URL = 'https://globaltrace-production.up.railway.app';
         let currentUrl = '';
+
+        const carrierIcons = {
+            'UPS': '📦',
+            'FedEx': '📦',
+            'DHL': '📦',
+            'USPS': '✉️',
+            'Maersk': '🚢',
+            'MSC': '🚢',
+            'CMA CGM': '🚢',
+            'COSCO': '🚢',
+            'Emirates': '✈️',
+            'Air India': '✈️',
+            'Turkish': '✈️',
+            'Lufthansa': '✈️'
+        };
 
         function fillAndTrack(value) {
             document.getElementById('trackingInput').value = value;
@@ -187,11 +194,8 @@
                 return;
             }
 
-            // Hide previous errors
             errorMessage.classList.add('hidden');
-
-            // Show loading
-            trackButton.textContent = 'Tracking... ⏳';
+            trackButton.textContent = 'Looking up carrier... ⏳';
             trackButton.disabled = true;
 
             try {
@@ -203,134 +207,78 @@
 
                 if (!response.ok) {
                     const error = await response.json();
-                    showError(error.detail?.error || error.detail || 'Invalid tracking number format');
-                    if (error.detail?.examples) {
-                        showExamples(error.detail.examples);
-                    }
+                    showError(error.detail?.error || error.detail || 'Invalid tracking number');
                     return;
                 }
 
                 const data = await response.json();
-
-                // Show results
-                document.getElementById('resultsArea').classList.remove('hidden');
-
-                if (data.type === 'customs') {
-                    showCustomsResults(data);
-                } else {
-                    showCarrierResults(data);
-                }
-
-                // Scroll to results
-                setTimeout(() => {
-                    document.getElementById('resultsArea').scrollIntoView({ behavior: 'smooth' });
-                }, 100);
+                showResult(data);
 
             } catch (error) {
                 console.error('Error:', error);
-                showError('Connection error. Please check your internet and try again.');
+                showError('Connection error. Please try again.');
             } finally {
-                trackButton.textContent = 'Track Now 🔍';
+                trackButton.textContent = 'Find Carrier Website 🔍';
                 trackButton.disabled = false;
             }
         }
 
-        function showCustomsResults(data) {
-            document.getElementById('carrierResults').classList.add('hidden');
-            document.getElementById('customsResults').classList.remove('hidden');
-
-            document.getElementById('customsEntryNumber').textContent = data.entry_number;
-            document.getElementById('customsProgress').textContent = 
-                `${data.completed_events} of ${data.total_events} steps completed`;
-
-            const timeline = document.getElementById('customsTimeline');
-            const now = new Date();
+        function showResult(data) {
+            document.getElementById('resultArea').classList.remove('hidden');
             
-            timeline.innerHTML = data.events.map((event, index) => {
-                const eventDate = new Date(event.timestamp);
-                const isPast = event.completed;
-                const isCurrent = event.is_current;
-                const isLast = index === data.events.length - 1;
-
-                return `
-                    <div class="flex gap-6">
-                        <div class="flex flex-col items-center">
-                            <div class="timeline-dot ${isPast ? '' : (isCurrent ? 'timeline-dot-current' : 'timeline-dot-pending')}">
-                                ${event.title.split(' ')[0]}
-                            </div>
-                            ${!isLast ? '<div class="timeline-line mt-2" style="min-height: 80px;"></div>' : ''}
-                        </div>
-
-                        <div class="flex-1 ${isPast ? '' : 'opacity-60'}">
-                            <div class="glass rounded-xl p-5 ${isCurrent ? 'ring-2 ring-purple-500' : ''}">
-                                <div class="flex justify-between items-start mb-3">
-                                    <div class="flex-1">
-                                        <div class="text-xl font-bold mb-2">${event.title}</div>
-                                        <div class="text-gray-300 mb-2">${event.description}</div>
-                                        <div class="text-sm text-gray-400">📍 ${event.location}</div>
-                                        ${event.detail ? `<div class="text-sm text-blue-300 mt-2">ℹ️ ${event.detail}</div>` : ''}
-                                    </div>
-                                    <div class="text-right ml-4">
-                                        <div class="text-sm font-semibold whitespace-nowrap">${eventDate.toLocaleDateString()}</div>
-                                        <div class="text-xs text-gray-400 whitespace-nowrap">${eventDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-                                    </div>
-                                </div>
-                                ${isCurrent ? '<div class="text-xs text-purple-300 font-semibold">⏳ CURRENT STEP</div>' : ''}
-                                ${isPast ? '<div class="text-xs text-green-400 font-semibold">✓ COMPLETED</div>' : ''}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function showCarrierResults(data) {
-            document.getElementById('customsResults').classList.add('hidden');
-            document.getElementById('carrierResults').classList.remove('hidden');
-
+            const icon = carrierIcons[data.carrier.split(' ')[0]] || '📦';
+            document.getElementById('carrierIcon').textContent = icon;
             document.getElementById('carrierName').textContent = data.carrier;
             document.getElementById('carrierNameBtn').textContent = data.carrier;
-            document.getElementById('carrierTracking').textContent = data.tracking_number;
-            document.getElementById('carrierInstructions').textContent = data.instructions || data.message;
+            document.getElementById('trackingNumber').textContent = data.tracking_number;
+            document.getElementById('carrierMessage').textContent = data.message;
+            
+            currentUrl = data.url;
 
-            currentUrl = data.tracking_url;
+            setTimeout(() => {
+                document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
         }
 
-        function openCarrierWebsite() {
+        function openCarrierSite() {
             if (currentUrl) {
                 window.open(currentUrl, '_blank', 'width=1200,height=900');
             }
+        }
+
+        function closeResult() {
+            document.getElementById('resultArea').classList.add('hidden');
+            document.getElementById('trackingInput').value = '';
+            document.getElementById('trackingInput').focus();
         }
 
         function showError(message) {
             const errorMessage = document.getElementById('errorMessage');
             const errorText = document.getElementById('errorText');
             
-            errorText.textContent = message;
-            errorMessage.classList.remove('hidden');
+            if (typeof message === 'string') {
+                errorText.textContent = message;
+            } else {
+                errorText.innerHTML = `
+                    <div class="mb-2">${message.error || 'Invalid format'}</div>
+                    ${message.supported_formats ? `
+                        <div class="text-xs mt-3">
+                            <div class="font-semibold mb-1">Supported formats:</div>
+                            <ul class="list-disc list-inside space-y-1">
+                                ${message.supported_formats.map(f => `<li>${f}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    ${message.note ? `<div class="text-xs mt-3 text-yellow-300">💡 ${message.note}</div>` : ''}
+                `;
+            }
             
+            errorMessage.classList.remove('hidden');
             setTimeout(() => {
                 errorMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 100);
         }
 
-        function showExamples(examples) {
-            const errorText = document.getElementById('errorText');
-            errorText.innerHTML = `
-                <div class="mb-2">Please use one of these formats:</div>
-                <ul class="list-disc list-inside space-y-1 font-mono text-xs">
-                    ${examples.map(ex => `<li>${ex}</li>`).join('')}
-                </ul>
-            `;
-        }
-
-        function closeResults() {
-            document.getElementById('resultsArea').classList.add('hidden');
-            document.getElementById('trackingInput').value = '';
-            document.getElementById('trackingInput').focus();
-        }
-
-        // Focus input on load
         window.addEventListener('load', () => {
             document.getElementById('trackingInput').focus();
         });

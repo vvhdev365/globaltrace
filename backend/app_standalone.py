@@ -1,23 +1,20 @@
 """
-GlobalTrace - FIXED Direct Website Version
-Better error handling and clear feedback
+GlobalTrace - HONEST Edition
+Only real carrier websites - NO fake data
 """
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime, timedelta
 import re
 import os
-from typing import Optional, List, Dict
-import random
+from typing import Dict
 
 app = FastAPI(
-    title="GlobalTrace - Fixed Edition",
-    description="Clear tracking with proper error messages",
-    version="8.0.0"
+    title="GlobalTrace - Honest Edition",
+    description="Direct links to real carrier tracking websites",
+    version="9.0.0"
 )
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,355 +24,163 @@ app.add_middleware(
     expose_headers=["*"]
 )
 
-# Storage
-TRACKED_SHIPMENTS = {}
+# ============= CARRIER DETECTION =============
 
-# ============= CARRIER URLS =============
-
-def get_maersk_url(container: str) -> str:
-    """Get Maersk tracking URL"""
-    # Clean the container number
-    clean = container.strip().upper().replace(" ", "").replace("-", "")
-    return f"https://www.maersk.com/tracking/{clean}"
-
-def get_ups_url(tracking: str) -> str:
-    clean = tracking.strip().upper().replace(" ", "")
-    return f"https://www.ups.com/track?tracknum={clean}"
-
-def get_fedex_url(tracking: str) -> str:
-    clean = tracking.strip().replace(" ", "")
-    return f"https://www.fedex.com/fedextrack/?tracknumbers={clean}"
-
-def get_airline_url(carrier: str, awb: str) -> Dict:
-    """Get airline tracking URL"""
+def detect_carrier(tracking_number: str) -> Dict:
+    """Detect carrier and return their official tracking URL"""
     
-    urls = {
-        "Air India": "https://www.airindia.com/in/en/manage/track-cargo.html",
-        "Emirates SkyCargo": "https://www.skycargo.com/track",
-        "Turkish Cargo": "https://cargo.turkishairlines.com/en-INT/track-shipment",
-        "Lufthansa Cargo": "https://www.lufthansa-cargo.com/tracking",
-        "Qatar Airways Cargo": "https://www.qrcargo.com/track",
-    }
-    
-    return {
-        "url": urls.get(carrier, "https://www.google.com/search?q=" + carrier + "+cargo+tracking"),
-        "note": f"Search for AWB: {awb} on {carrier} website"
-    }
-
-# ============= DETECTION =============
-
-def detect_tracking_type(input_str: str) -> Dict:
-    """Detect what type of tracking number this is"""
-    
-    clean = input_str.strip().upper().replace(" ", "").replace("-", "")
-    original = input_str.strip().upper()
-    
-    # Customs Entry: XXX-XXXXXXX-X (filer code can be letters or digits)
-    if re.match(r'^[A-Z0-9]{3}-\d{7}-\d$', original):
-        return {
-            "type": "customs_entry",
-            "entry_number": original,
-            "carrier": "U.S. Customs",
-            "message": "Showing U.S. Customs clearance timeline"
-        }
-    
-    # Maersk/Container: 4 letters + 7 digits
-    if re.match(r'^[A-Z]{4}\d{7}$', clean):
-        prefix = clean[:4]
-        
-        carrier_map = {
-            "MAEU": "Maersk",
-            "MSCU": "MSC",
-            "CMAU": "CMA CGM",
-            "COSU": "COSCO",
-            "HLCU": "Hapag-Lloyd",
-        }
-        
-        carrier = carrier_map.get(prefix, "Ocean Carrier")
-        
-        return {
-            "type": "container",
-            "tracking_number": clean,
-            "carrier": carrier,
-            "url": get_maersk_url(clean) if carrier == "Maersk" else f"https://www.google.com/search?q={carrier}+container+tracking+{clean}",
-            "message": f"Opening {carrier} website"
-        }
+    clean = tracking_number.strip().upper().replace(" ", "").replace("-", "")
     
     # UPS: 1Z + 16 characters
     if re.match(r'^1Z[A-Z0-9]{16}$', clean):
         return {
-            "type": "express",
-            "tracking_number": clean,
             "carrier": "UPS",
-            "url": get_ups_url(clean),
-            "message": "Opening UPS tracking"
+            "tracking_number": clean,
+            "url": f"https://www.ups.com/track?tracknum={clean}",
+            "type": "express"
         }
     
     # FedEx: 12 or 15 digits
     if re.match(r'^\d{12}$|^\d{15}$', clean):
         return {
-            "type": "express",
-            "tracking_number": clean,
             "carrier": "FedEx",
-            "url": get_fedex_url(clean),
-            "message": "Opening FedEx tracking"
+            "tracking_number": clean,
+            "url": f"https://www.fedex.com/fedextrack/?tracknumbers={clean}",
+            "type": "express"
         }
     
-    # Air Waybill: XXX-XXXXXXXX or XXXXXXXXXXX
-    awb_match = re.match(r'^(\d{3})-?(\d{8})$', original)
-    if awb_match:
-        prefix = awb_match.group(1)
-        awb_full = f"{prefix}-{awb_match.group(2)}"
+    # DHL: 10 digits
+    if re.match(r'^\d{10}$', clean):
+        return {
+            "carrier": "DHL Express",
+            "tracking_number": clean,
+            "url": f"https://www.dhl.com/en/express/tracking.html?AWB={clean}",
+            "type": "express"
+        }
+    
+    # USPS: 9400... or 9200... (20-22 digits)
+    if re.match(r'^9[2-4]\d{18,20}$', clean):
+        return {
+            "carrier": "USPS",
+            "tracking_number": clean,
+            "url": f"https://tools.usps.com/go/TrackConfirmAction?tLabels={clean}",
+            "type": "mail"
+        }
+    
+    # Container: 4 letters + 7 digits
+    if re.match(r'^[A-Z]{4}\d{7}$', clean):
+        prefix = clean[:4]
         
-        airline_map = {
-            "098": "Air India",
-            "176": "Emirates SkyCargo",
-            "235": "Turkish Cargo",
-            "020": "Lufthansa Cargo",
-            "157": "Qatar Airways Cargo",
+        carriers = {
+            "MAEU": {"name": "Maersk", "url": f"https://www.maersk.com/tracking/{clean}"},
+            "MSCU": {"name": "MSC", "url": "https://www.msc.com/track-a-shipment"},
+            "CMAU": {"name": "CMA CGM", "url": "https://www.cma-cgm.com/ebusiness/tracking"},
+            "COSU": {"name": "COSCO", "url": "https://elines.coscoshipping.com/ebusiness/cargoTracking"},
+            "HLCU": {"name": "Hapag-Lloyd", "url": "https://www.hapag-lloyd.com/en/online-business/track/track-by-container.html"},
+            "ONEY": {"name": "ONE", "url": "https://ecomm.one-line.com/ecom/CUP_HOM_3301.do"},
+            "EISU": {"name": "Evergreen", "url": "https://www.shipmentlink.com/servlet/TDB1_CargoTracking.do"},
         }
         
-        carrier = airline_map.get(prefix, "Air Cargo")
-        url_info = get_airline_url(carrier, awb_full)
+        carrier_info = carriers.get(prefix, {"name": "Ocean Carrier", "url": f"https://www.google.com/search?q={prefix}+container+tracking+{clean}"})
         
         return {
-            "type": "air_waybill",
-            "tracking_number": awb_full,
-            "carrier": carrier,
-            "url": url_info["url"],
-            "note": url_info["note"],
-            "message": f"Opening {carrier} website"
+            "carrier": carrier_info["name"],
+            "tracking_number": clean,
+            "url": carrier_info["url"],
+            "type": "ocean",
+            "note": f"Search for container: {clean}"
         }
     
-    # Unknown
-    return {
-        "type": "unknown",
-        "error": f"Cannot recognize format: '{original}'",
-        "help": [
-            "Customs Entry: 8KP-0074459-0 (XXX-XXXXXXX-X)",
-            "Air Waybill: 176-12345678",
-            "Container: MAEU1234567",
-            "UPS: 1Z999AA10123456784",
-            "FedEx: 123456789012"
-        ]
-    }
-
-# ============= CUSTOMS TIMELINE =============
-
-def generate_customs_events(entry_number: str) -> List[Dict]:
-    """Generate realistic customs clearance events"""
-    
-    now = datetime.utcnow()
-    arrival = now - timedelta(days=2)
-    
-    events = []
-    
-    # ISF Filed (3 days before arrival)
-    events.append({
-        "timestamp": (arrival - timedelta(days=3)).isoformat(),
-        "status": "ISF Filed",
-        "title": "📋 Importer Security Filing Submitted",
-        "description": "ISF (10+2) filed with U.S. Customs and Border Protection",
-        "location": "Electronic Filing - CBP AMS System",
-        "completed": True
-    })
-    
-    # ISF Accepted (1 day before)
-    events.append({
-        "timestamp": (arrival - timedelta(days=1)).isoformat(),
-        "status": "ISF Accepted",
-        "title": "✅ ISF Accepted by CBP",
-        "description": "No discrepancies found - cleared for cargo arrival",
-        "location": "CBP Automated Manifest System",
-        "completed": True
-    })
-    
-    # Arrival
-    events.append({
-        "timestamp": arrival.isoformat(),
-        "status": "Arrived",
-        "title": "🚢 Cargo Arrived at U.S. Port",
-        "description": "Vessel/aircraft arrival notification sent to CBP",
-        "location": "U.S. Port of Entry",
-        "completed": True
-    })
-    
-    # Entry Filed
-    events.append({
-        "timestamp": (arrival + timedelta(hours=6)).isoformat(),
-        "status": "Entry Filed",
-        "title": "📄 Customs Entry Filed",
-        "description": f"Entry #{entry_number} submitted to CBP ACE system",
-        "location": "Automated Commercial Environment (ACE)",
-        "detail": "Estimated duties: $1,247.50",
-        "completed": True
-    })
-    
-    # Under Review
-    current_event = (arrival + timedelta(hours=12)).isoformat()
-    is_current = datetime.fromisoformat(current_event) <= now < datetime.fromisoformat((arrival + timedelta(hours=20)).isoformat())
-    
-    events.append({
-        "timestamp": current_event,
-        "status": "Under Review",
-        "title": "🔍 CBP Document Review",
-        "description": "Import specialist reviewing tariff classification and valuation",
-        "location": "CBP Import Review Station",
-        "completed": datetime.fromisoformat(current_event) < now,
-        "is_current": is_current
-    })
-    
-    # Exam or No Exam (33% chance)
-    needs_exam = random.choice([False, False, True])
-    
-    if needs_exam:
-        events.append({
-            "timestamp": (arrival + timedelta(hours=20)).isoformat(),
-            "status": "Exam Ordered",
-            "title": "🔬 CBP Examination Ordered",
-            "description": "VACIS scan + physical inspection required",
-            "location": "Centralized Examination Station (CES)",
-            "detail": "Non-intrusive inspection (NII) + tailgate exam",
-            "completed": False
-        })
+    # Air Waybill: XXX-XXXXXXXX (3 digits/letters, dash, 8 digits)
+    awb_match = re.match(r'^(\d{3})-?(\d{8})$', tracking_number.strip())
+    if awb_match:
+        prefix = awb_match.group(1)
+        full_awb = f"{prefix}-{awb_match.group(2)}"
         
-        events.append({
-            "timestamp": (arrival + timedelta(days=1, hours=10)).isoformat(),
-            "status": "Exam Complete",
-            "title": "✔️ Inspection Completed",
-            "description": "No discrepancies found during examination",
-            "location": "CES Inspection Facility",
-            "completed": False
-        })
+        airlines = {
+            "098": {"name": "Air India Cargo", "url": "https://www.airindia.com/in/en/manage/track-cargo.html"},
+            "176": {"name": "Emirates SkyCargo", "url": "https://www.skycargo.com/track"},
+            "235": {"name": "Turkish Cargo", "url": "https://cargo.turkishairlines.com/en-INT/track-shipment"},
+            "020": {"name": "Lufthansa Cargo", "url": "https://www.lufthansa-cargo.com/tracking"},
+            "157": {"name": "Qatar Airways Cargo", "url": "https://www.qrcargo.com/track"},
+            "607": {"name": "Etihad Cargo", "url": "https://www.etihadcargo.com/en/track"},
+            "057": {"name": "Air France KLM Cargo", "url": "https://www.afklcargo.com/WW/en/common/tracking/track.jsp"},
+            "125": {"name": "British Airways World Cargo", "url": "https://www.iacargo.com/iCargo/tracking.do"},
+            "618": {"name": "Singapore Airlines Cargo", "url": "https://www.siacargo.com/track-trace"},
+            "160": {"name": "Cathay Pacific Cargo", "url": "https://www.cathaypacificcargo.com/track"},
+        }
         
-        release_time = arrival + timedelta(days=1, hours=14)
-    else:
-        events.append({
-            "timestamp": (arrival + timedelta(hours=20)).isoformat(),
-            "status": "No Exam",
-            "title": "🟢 No Exam Required",
-            "description": "Risk-based screening passed - automated release authorized",
-            "location": "CBP Automated Processing",
-            "completed": False
-        })
+        airline_info = airlines.get(prefix, {"name": "Air Cargo", "url": f"https://www.google.com/search?q=AWB+{full_awb}+tracking"})
         
-        release_time = arrival + timedelta(hours=26)
+        return {
+            "carrier": airline_info["name"],
+            "tracking_number": full_awb,
+            "url": airline_info["url"],
+            "type": "air",
+            "note": f"Search for AWB: {full_awb}"
+        }
     
-    # Duties Paid
-    events.append({
-        "timestamp": release_time.isoformat(),
-        "status": "Duties Paid",
-        "title": "💰 Duties and Fees Paid",
-        "description": "Payment confirmed by CBP",
-        "location": "ACE Payment System",
-        "detail": "Total: $1,247.50",
-        "completed": False
-    })
-    
-    # Released
-    events.append({
-        "timestamp": (release_time + timedelta(hours=2)).isoformat(),
-        "status": "Released",
-        "title": "🎉 Released by U.S. Customs",
-        "description": "Cargo cleared for domestic delivery",
-        "location": "CBP Port of Entry",
-        "detail": "Release code: 01 - Released",
-        "completed": False
-    })
-    
-    return events
+    # Unknown format
+    return None
 
 # ============= MAIN ENDPOINT =============
 
 @app.post("/api/track")
 async def track_shipment(data: dict):
-    """Main tracking endpoint"""
+    """Detect carrier and return their tracking URL"""
     
-    input_str = data.get("tracking_input", "").strip()
+    tracking_input = data.get("tracking_input", "").strip()
     
-    if not input_str:
-        raise HTTPException(
-            status_code=400,
-            detail="Please enter a tracking number or customs entry number"
-        )
+    if not tracking_input:
+        raise HTTPException(status_code=400, detail="Please enter a tracking number")
     
-    # Detect type
-    result = detect_tracking_type(input_str)
+    result = detect_carrier(tracking_input)
     
-    if result["type"] == "unknown":
+    if not result:
         raise HTTPException(
             status_code=400,
             detail={
-                "error": result["error"],
-                "examples": result["help"]
+                "error": f"Cannot recognize tracking number format: '{tracking_input}'",
+                "supported_formats": [
+                    "UPS: 1Z999AA10123456784",
+                    "FedEx: 123456789012 or 123456789012345",
+                    "USPS: 9400111899562537289741",
+                    "DHL: 1234567890",
+                    "Maersk Container: MAEU1234567",
+                    "Air Waybill: 176-12345678",
+                ],
+                "note": "For U.S. Customs entries, contact your customs broker directly"
             }
         )
     
-    # Handle customs entry
-    if result["type"] == "customs_entry":
-        events = generate_customs_events(result["entry_number"])
-        
-        response = {
-            "type": "customs",
-            "entry_number": result["entry_number"],
-            "carrier": "U.S. Customs & Border Protection",
-            "events": events,
-            "total_events": len(events),
-            "completed_events": sum(1 for e in events if e.get("completed", False))
-        }
-        
-        TRACKED_SHIPMENTS[result["entry_number"]] = response
-        return response
-    
-    # Handle carrier tracking (container, air, express)
-    response = {
-        "type": result["type"],
-        "tracking_number": result.get("tracking_number", input_str),
-        "carrier": result["carrier"],
-        "tracking_url": result["url"],
-        "message": result["message"],
-        "note": result.get("note", ""),
-        "instructions": f"1. Click 'Open Website' button below\n2. Look for tracking number: {result.get('tracking_number', input_str)}\n3. View live tracking from {result['carrier']}"
-    }
-    
-    TRACKED_SHIPMENTS[result.get("tracking_number", input_str)] = response
-    return response
-
-@app.get("/api/history")
-async def get_history():
-    """Get tracking history"""
     return {
-        "shipments": list(TRACKED_SHIPMENTS.values()),
-        "count": len(TRACKED_SHIPMENTS)
+        "success": True,
+        "carrier": result["carrier"],
+        "tracking_number": result["tracking_number"],
+        "url": result["url"],
+        "type": result["type"],
+        "note": result.get("note", ""),
+        "message": f"Opening {result['carrier']} official tracking website"
     }
-
-@app.delete("/api/track/{identifier}")
-async def remove_tracking(identifier: str):
-    """Remove from history"""
-    if identifier in TRACKED_SHIPMENTS:
-        del TRACKED_SHIPMENTS[identifier]
-        return {"message": "Removed"}
-    raise HTTPException(status_code=404, detail="Not found")
 
 @app.get("/")
 async def root():
     return {
-        "name": "GlobalTrace - Fixed Edition",
-        "version": "8.0.0",
-        "status": "working",
-        "cost": "$0/month",
-        "test_examples": {
-            "customs": "8KP-0074459-0",
-            "maersk": "MAEU1234567",
-            "emirates": "176-12345678",
-            "ups": "1Z999AA10123456784",
-            "fedex": "123456789012"
-        }
+        "name": "GlobalTrace - Honest Edition",
+        "version": "9.0.0",
+        "description": "Direct links to real carrier tracking websites",
+        "data_policy": "NO FAKE DATA - Only links to official carrier websites",
+        "supported_carriers": {
+            "express": ["UPS", "FedEx", "DHL", "USPS"],
+            "ocean": ["Maersk", "MSC", "CMA CGM", "COSCO", "Hapag-Lloyd", "ONE", "Evergreen"],
+            "air": ["Air India", "Emirates", "Turkish", "Lufthansa", "Qatar", "Etihad", "Air France KLM", "British Airways", "Singapore", "Cathay Pacific"]
+        },
+        "note": "For U.S. Customs status, contact your customs broker"
     }
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy", "version": "8.0.0"}
+    return {"status": "healthy", "version": "9.0.0", "data": "real_only"}
 
 if __name__ == "__main__":
     import uvicorn
