@@ -1,0 +1,171 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database with PostGIS
+  db:
+    image: postgis/postgis:15-3.3
+    container_name: logistics_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-logistics_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-logistics_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-logistics_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-logistics_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - logistics_network
+
+  # Redis for caching and message queue
+  redis:
+    image: redis:7-alpine
+    container_name: logistics_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - logistics_network
+
+  # FastAPI Backend
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: logistics_api
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-logistics_user}:${POSTGRES_PASSWORD:-logistics_pass}@db:5432/${POSTGRES_DB:-logistics_db}
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=${DEBUG:-false}
+      - SECRET_KEY=${SECRET_KEY:-change-this-secret-key}
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - logistics_network
+
+  # OSRM Routing Engine (Self-hosted, Free!)
+  # Note: You need to download map data first
+  # Instructions in README.md
+  osrm:
+    image: osrm/osrm-backend:latest
+    container_name: logistics_osrm
+    volumes:
+      - osrm_data:/data
+    ports:
+      - "5000:5000"
+    # Command will be updated after downloading map data
+    # command: osrm-routed --algorithm mld /data/region-latest.osrm
+    restart: unless-stopped
+    networks:
+      - logistics_network
+    profiles:
+      - osrm  # Optional service, enable with: docker-compose --profile osrm up
+
+  # Celery Worker for background tasks
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: logistics_worker
+    command: celery -A celery_app worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-logistics_user}:${POSTGRES_PASSWORD:-logistics_pass}@db:5432/${POSTGRES_DB:-logistics_db}
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - logistics_network
+    profiles:
+      - celery  # Optional service
+
+  # Nginx Reverse Proxy (Production)
+  nginx:
+    image: nginx:alpine
+    container_name: logistics_nginx
+    volumes:
+      - ./devops/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - logistics_network
+    profiles:
+      - production  # Only for production deployment
+
+  # Prometheus (Monitoring - Optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: logistics_prometheus
+    volumes:
+      - ./devops/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    networks:
+      - logistics_network
+    profiles:
+      - monitoring
+
+  # Grafana (Dashboard - Optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: logistics_grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    networks:
+      - logistics_network
+    profiles:
+      - monitoring
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  osrm_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  logistics_network:
+    driver: bridge

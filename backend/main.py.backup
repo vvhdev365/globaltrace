@@ -1,0 +1,328 @@
+"""
+Main FastAPI Application - Zero-Cost Logistics Platform
+Includes: Route optimization, geocoding, real-time tracking
+"""
+
+from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+from typing import List, Optional
+import httpx
+import json
+from datetime import datetime
+import asyncio
+
+# Import from local modules
+from database import Base, get_db
+from models import Route, Stop, Driver, Vehicle
+from schemas import RouteCreate, RouteOptimize, StopCreate
+from optimizer import RouteOptimizer
+
+# Initialize FastAPI
+app = FastAPI(
+    title="Logistics Platform API",
+    description="Zero-cost logistics and route optimization platform",
+    version="1.0.0"
+)
+
+# CORS middleware for frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# WebSocket connection manager for real-time tracking
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: dict = {}
+
+    async def connect(self, websocket: WebSocket, client_id: str):
+        await websocket.accept()
+        self.active_connections[client_id] = websocket
+
+    def disconnect(self, client_id: str):
+        if client_id in self.active_connections:
+            del self.active_connections[client_id]
+
+    async def broadcast(self, message: dict):
+        for connection in self.active_connections.values():
+            await connection.send_json(message)
+
+    async def send_to_client(self, client_id: str, message: dict):
+        if client_id in self.active_connections:
+            await self.active_connections[client_id].send_json(message)
+
+manager = ConnectionManager()
+
+# Initialize route optimizer
+optimizer = RouteOptimizer()
+
+# ============= API ENDPOINTS =============
+
+@app.get("/")
+async def root():
+    return {
+        "message": "Logistics Platform API",
+        "version": "1.0.0",
+        "status": "operational"
+    }
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "timestamp": datetime.utcnow()}
+
+# ============= GEOCODING =============
+
+@app.get("/api/geocode")
+async def geocode_address(address: str):
+    """
+    Free geocoding using Nominatim (OpenStreetMap)
+    """
+    url = "https://nominatim.openstreetmap.org/search"
+    params = {
+        "q": address,
+        "format": "json",
+        "limit": 1,
+        "addressdetails": 1
+    }
+    headers = {
+        "User-Agent": "LogisticsPlatform/1.0"
+    }
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url, params=params, headers=headers, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            
+            if not data:
+                raise HTTPException(status_code=404, detail="Address not found")
+            
+            result = data[0]
+            return {
+                "address": result.get("display_name"),
+                "lat": float(result.get("lat")),
+                "lng": float(result.get("lon")),
+                "place_id": result.get("place_id")
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Geocoding failed: {str(e)}")
+
+@app.get("/api/reverse-geocode")
+async def reverse_geocode(lat: float, lng: float):
+    """
+    Reverse geocoding - convert coordinates to address
+    """
+    url = "https://nominatim.openstreetmap.org/reverse"
+    params = {
+        "lat": lat,
+        "lon": lng,
+        "format": "json"
+    }
+    headers = {
+        "User-Agent": "LogisticsPlatform/1.0"
+    }
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url, params=params, headers=headers, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            return {
+                "address": data.get("display_name"),
+                "lat": lat,
+                "lng": lng
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Reverse geocoding failed: {str(e)}")
+
+# ============= ROUTE OPTIMIZATION =============
+
+@app.post("/api/routes/optimize")
+async def optimize_route(route_data: RouteOptimize):
+    """
+    Optimize route using Google OR-Tools + OSRM routing
+    """
+    try:
+        # Get distance matrix from OSRM (free, self-hosted)
+        distance_matrix = await get_osrm_distance_matrix(route_data.stops)
+        
+        # Optimize using OR-Tools
+        optimized_sequence = optimizer.optimize(
+            distance_matrix=distance_matrix,
+            num_vehicles=route_data.num_vehicles or 1,
+            depot=route_data.depot_index or 0
+        )
+        
+        # Reorder stops according to optimized sequence
+        optimized_stops = [route_data.stops[i] for i in optimized_sequence]
+        
+        # Calculate total distance and time
+        total_distance = sum(distance_matrix[optimized_sequence[i]][optimized_sequence[i+1]] 
+                           for i in range(len(optimized_sequence)-1))
+        
+        return {
+            "optimized_stops": optimized_stops,
+            "sequence": optimized_sequence,
+            "total_distance_meters": total_distance,
+            "estimated_time_minutes": total_distance / 1000 * 3  # Rough estimate
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Optimization failed: {str(e)}")
+
+async def get_osrm_distance_matrix(stops: List[dict]):
+    """
+    Get distance matrix from OSRM (free routing engine)
+    Can use: self-hosted OSRM or public OSRM demo server
+    """
+    # Format coordinates for OSRM
+    coords = ";".join([f"{stop['lng']},{stop['lat']}" for stop in stops])
+    
+    # Use public OSRM server (replace with self-hosted in production)
+    url = f"http://router.project-osrm.org/table/v1/driving/{coords}"
+    params = {
+        "annotations": "distance,duration"
+    }
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url, params=params, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+            
+            if data.get("code") != "Ok":
+                raise HTTPException(status_code=500, detail="OSRM routing failed")
+            
+            return data["distances"]  # Returns matrix in meters
+        except Exception as e:
+            # Fallback to simple Euclidean distance if OSRM fails
+            return calculate_euclidean_distance_matrix(stops)
+
+def calculate_euclidean_distance_matrix(stops: List[dict]):
+    """
+    Fallback: Calculate simple distance matrix using Euclidean distance
+    """
+    import math
+    n = len(stops)
+    matrix = [[0] * n for _ in range(n)]
+    
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                # Haversine formula for distance
+                lat1, lng1 = stops[i]['lat'], stops[i]['lng']
+                lat2, lng2 = stops[j]['lat'], stops[j]['lng']
+                
+                R = 6371000  # Earth radius in meters
+                phi1 = math.radians(lat1)
+                phi2 = math.radians(lat2)
+                delta_phi = math.radians(lat2 - lat1)
+                delta_lambda = math.radians(lng2 - lng1)
+                
+                a = math.sin(delta_phi/2)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda/2)**2
+                c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+                
+                matrix[i][j] = R * c
+    
+    return matrix
+
+# ============= ROUTE CRUD OPERATIONS =============
+
+@app.post("/api/routes")
+async def create_route(route: RouteCreate, db: AsyncSession = Depends(get_db)):
+    """Create a new route"""
+    # Implementation depends on database models
+    return {"message": "Route created", "route_id": 1}
+
+@app.get("/api/routes")
+async def get_routes(db: AsyncSession = Depends(get_db)):
+    """Get all routes"""
+    return {"routes": []}
+
+@app.get("/api/routes/{route_id}")
+async def get_route(route_id: int, db: AsyncSession = Depends(get_db)):
+    """Get specific route"""
+    return {"route_id": route_id}
+
+@app.put("/api/routes/{route_id}")
+async def update_route(route_id: int, db: AsyncSession = Depends(get_db)):
+    """Update route"""
+    return {"message": "Route updated"}
+
+@app.delete("/api/routes/{route_id}")
+async def delete_route(route_id: int, db: AsyncSession = Depends(get_db)):
+    """Delete route"""
+    return {"message": "Route deleted"}
+
+# ============= REAL-TIME TRACKING =============
+
+@app.websocket("/ws/tracking/{driver_id}")
+async def tracking_websocket(websocket: WebSocket, driver_id: str):
+    """
+    WebSocket endpoint for real-time GPS tracking
+    Driver app sends location updates here
+    """
+    await manager.connect(websocket, driver_id)
+    try:
+        while True:
+            # Receive location update from driver
+            data = await websocket.receive_json()
+            
+            # Broadcast to all connected dashboards
+            await manager.broadcast({
+                "type": "location_update",
+                "driver_id": driver_id,
+                "lat": data.get("lat"),
+                "lng": data.get("lng"),
+                "timestamp": datetime.utcnow().isoformat(),
+                "speed": data.get("speed", 0),
+                "heading": data.get("heading", 0)
+            })
+            
+    except WebSocketDisconnect:
+        manager.disconnect(driver_id)
+
+@app.websocket("/ws/dashboard")
+async def dashboard_websocket(websocket: WebSocket):
+    """
+    WebSocket endpoint for dashboard to receive real-time updates
+    """
+    await manager.connect(websocket, f"dashboard_{id(websocket)}")
+    try:
+        while True:
+            await asyncio.sleep(1)  # Keep connection alive
+    except WebSocketDisconnect:
+        manager.disconnect(f"dashboard_{id(websocket)}")
+
+# ============= ANALYTICS =============
+
+@app.get("/api/analytics/summary")
+async def get_analytics_summary(db: AsyncSession = Depends(get_db)):
+    """Get analytics summary"""
+    return {
+        "total_routes": 0,
+        "active_drivers": 0,
+        "completed_deliveries": 0,
+        "avg_delivery_time": 0
+    }
+
+# ============= DRIVER OPERATIONS =============
+
+@app.get("/api/drivers")
+async def get_drivers(db: AsyncSession = Depends(get_db)):
+    """Get all drivers"""
+    return {"drivers": []}
+
+@app.post("/api/drivers")
+async def create_driver(db: AsyncSession = Depends(get_db)):
+    """Create new driver"""
+    return {"message": "Driver created"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
